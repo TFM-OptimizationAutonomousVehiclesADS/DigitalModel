@@ -1,0 +1,10 @@
+[Unit]
+Description=Anomaly Detection System Service
+After=multi-user.target
+[Service]
+Type=simple
+Restart=always
+Environment="PYTHONPATH=/app"
+ExecStart=/home/ubuntu/.virtualenvs/OptimizationAutonomousVehiclesADS/bin/python3 /opt/tfm/OptimizationAutonomousVehiclesADS/DigitalModel/services/detection/mainDetectionService.py
+[Install]
+WantedBy=multi-user.target

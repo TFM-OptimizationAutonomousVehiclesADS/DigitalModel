@@ -158,7 +158,7 @@ class ADSModel:
         history = model.fit(X_train, y_train, epochs=epochs)
         evaluation_dict = self.get_evaluation_dict(model, X_tests, y_tests)
         evaluation_dict["random"] = random
-        evaluation_dict["size_spit"] = size_split
+        evaluation_dict["size_split"] = size_split
         evaluation_dict["test_size"] = test_size
         evaluation_dict["epochs"] = epochs
         evaluation_dict["retraining"] = True

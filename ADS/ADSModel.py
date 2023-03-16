@@ -1,3 +1,5 @@
+import os.path
+
 from localDatabase.collections.MLModelConfiguration.queries import *
 from localDatabase.collections.SamplesDataset.queries import *
 from localDatabase.collections.TrainingEvaluationLogs.queries import addNewRetrainingEvaluation
@@ -9,6 +11,7 @@ import json
 import logging
 import io
 import base64
+import os
 
 class ADSModel:
 
@@ -24,8 +27,10 @@ class ADSModel:
         self.dataset = pd.read_csv(self.pathDatasetCsv)
 
     def __load_model__(self):
-        custom_objects = {"recall": recall, "precision": precision, "f1_score": f1_score}
-        return models.load_model(self.modelPath, custom_objects=custom_objects)
+        if os.path.exists(self.modelPath):
+            custom_objects = {"recall": recall, "precision": precision, "f1_score": f1_score}
+            return models.load_model(self.modelPath, custom_objects=custom_objects)
+        return None
 
     def __preprocessing_X__(self, X):
         X_full_images = np.array(list(list(zip(*X))[0]))

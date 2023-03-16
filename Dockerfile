@@ -1,6 +1,7 @@
 FROM python:3.8
 COPY . /app
 COPY requirements.txt /app
+RUN mkdir /app/models
 
 WORKDIR /app
 ENV PYTHONPATH=/app

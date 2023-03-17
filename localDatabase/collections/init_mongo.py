@@ -42,7 +42,7 @@ setModelConfig({
     "filename_objects_image",
     "filename_surfaces_image"
   ],
-  "threshold": 0.75
+  "threshold": 0.5
 })
 
 setDatasetsPath({

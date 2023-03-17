@@ -12,3 +12,4 @@ tensorflow
 pydot
 graphviz
 typing-extensions
+keras-tuner

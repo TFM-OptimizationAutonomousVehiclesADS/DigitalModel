@@ -4,14 +4,16 @@ from localDatabase.collections.MLModelConfiguration.queries import *
 from localDatabase.collections.SamplesDataset.queries import *
 from localDatabase.collections.TrainingEvaluationLogs.queries import addNewRetrainingEvaluation
 import pandas as pd
-from tensorflow.keras import datasets, layers, models
 from ADS.auxiliar_functions import *
+import tensorflow as tf
 from tensorflow import keras
 import json
 import logging
 import io
 import base64
 import os
+import keras_tuner as kt
+
 
 class ADSModel:
 
@@ -97,6 +99,9 @@ class ADSModel:
     def is_anomaly(self, y_pred):
         return y_pred >= self.threshold
 
+    def is_sure_normal_sample(self, y_pred):
+        return y_pred <= 0.1
+
     def __get_train_test_split__(self, random=None, size_split=None, test_size=0.25):
         dataset = self.dataset
         if random:
@@ -148,14 +153,46 @@ class ADSModel:
         base64_image = base64.b64encode(img_bytes.getvalue()).decode('utf-8')
         return base64_image
 
-    def retrain_model(self, retrainWeights=True, random=None, size_split=None, test_size=0.25, epochs=10):
-        model = self.model
-        if retrainWeights:
-            model = self.__load_model__()
-        else:
-            model = keras.models.clone_model(model)
+    def retrain_model(self, retrainWeights=True, tunning=False, model_by_best_epoch=False, random=None, size_split=None, test_size=0.25, epochs=10,
+                      validation_split=0.2):
         X_train, X_tests, y_train, y_tests = self.__get_train_test_split__(random, size_split, test_size)
-        history = model.fit(X_train, y_train, epochs=epochs)
+
+        model = self.model
+        if tunning:
+            tuner = kt.Hyperband(self.build_model_tunning,
+                                 objective=kt.Objective("val_f1_score", direction="max"),
+                                 max_epochs=epochs,
+                                 factor=3,
+                                 directory='models',
+                                 project_name='tunning_model')
+            stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+            tuner.search(X_train, y_train, epochs=epochs, validation_split=validation_split, callbacks=[stop_early])
+            # Get the optimal hyperparameters
+            best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+            model = tuner.hypermodel.build(best_hps)
+
+        else:
+            best_hps = self.model.get_config()
+            if retrainWeights:
+                model = self.__load_model__()
+            else:
+                model = keras.Model.from_config(best_hps)
+
+        history = model.fit(X_train, y_train, epochs=epochs, validation_split=0.2)
+        if model_by_best_epoch:
+            # val_acc_per_epoch = history.history['val_accuracy']
+            val_f1_score_per_epoch = history.history['val_f1_score']
+            best_epoch = val_f1_score_per_epoch.index(max(val_f1_score_per_epoch)) + 1
+            logging.info('Best epoch: %d' % (best_epoch,))
+            if tunning:
+                model = tuner.hypermodel.build(best_hps)
+            else:
+                if retrainWeights:
+                    model = self.__load_model__()
+                else:
+                    model = keras.Model.from_config(best_hps)
+            history = model.fit(X_train, y_train, epochs=best_epoch, validation_split=0.2)
+
         evaluation_dict = self.get_evaluation_dict(model, X_tests, y_tests)
         evaluation_dict["random"] = random
         evaluation_dict["size_split"] = size_split
@@ -192,10 +229,16 @@ class ADSModel:
         self.model = model
         addNewRetrainingEvaluation(evaluation_dict)
 
-    def compile_model(self, model, optimizer="adam", metrics=["accuracy"]):
-        model.compile(optimizer=getModelCompilerOptimizer(),
-                      loss=keras.losses.BinaryCrossentropy(),
-                      metrics=metrics)
+    def compile_model(self, model, optimizer="adam", metrics=["accuracy"], tunning=False, hp=None):
+        if tunning:
+            hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
+            model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
+                          loss=keras.losses.BinaryCrossentropy(),
+                          metrics=metrics)
+        else:
+            model.compile(optimizer=getModelCompilerOptimizer(),
+                          loss=keras.losses.BinaryCrossentropy(),
+                          metrics=metrics)
 
     def create_model_layers(self, size_image, number_features):
         # Process features input layer
@@ -248,4 +291,67 @@ class ADSModel:
         model = keras.Model(inputs=[input_features, input_full_images, input_objects_image, input_surfaces_images],
                             outputs=[output_layer])
         model.summary()
+        return model
+
+    def create_model_layers_tunning(self, size_image, number_features, hp):
+        # Process features input layer
+        input_features = layers.Input(shape=(number_features,), name="features")
+        dense_features = layers.Dense(units=hp.Int(name='units', min_value=16, max_value=256, step=32))(input_features)
+
+        # Process image input layer
+        input_full_images = layers.Input(shape=(size_image[0], size_image[1], 3), name="full_images")
+        # input_full_conv2d1 = layers.Conv2D(16, (3, 3), activation='relu')(input_full_images)
+        # input_full_pooling2d1 = layers.MaxPooling2D(2, 2)(input_full_conv2d1)
+        # input_full_conv2d2 = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_full_pooling2d1)
+        # input_full_pooling2d2 = layers.MaxPooling2D(2, 2)(input_full_conv2d2)
+        # input_full_conv2d3 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_full_pooling2d2)
+        # input_full_pooling2d3 = layers.MaxPooling2D(2, 2)(input_full_conv2d3)
+        input_full_flatten_images = layers.Flatten()(input_full_images)
+        input_full_dense_images = layers.Dense(hp.Int(name='units', min_value=16, max_value=256, step=32))(
+            input_full_flatten_images)
+
+        # Process objects_image input layer
+        input_objects_image = layers.Input(shape=(size_image[0], size_image[1], 3), name="objects_images")
+        # input_objects_conv2d1 = layers.Conv2D(16, (3, 3), activation='relu')(input_objects_image)
+        # input_objects_pooling2d1 = layers.MaxPooling2D(2, 2)(input_objects_conv2d1)
+        # input_objects_conv2d2 = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_objects_pooling2d1)
+        # input_objects_pooling2d2 = layers.MaxPooling2D(2, 2)(input_objects_conv2d2)
+        # input_objects_conv2d3 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_objects_pooling2d2)
+        # input_objects_pooling2d3 = layers.MaxPooling2D(2, 2)(input_objects_conv2d3)
+        input_objects_flatten_images = layers.Flatten()(input_objects_image)
+        input_objects_dense_images = layers.Dense(hp.Int(name='units', min_value=16, max_value=256, step=32))(
+            input_objects_flatten_images)
+
+        # Process surfaces input layer
+        input_surfaces_images = layers.Input(shape=(size_image[0], size_image[1], 3), name="surfaces_images")
+        # input_surfaces_conv2d1 = layers.Conv2D(16, (3, 3), activation='relu')(input_surfaces_images)
+        # input_surfaces_pooling2d1 = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d1)
+        # input_surfaces_conv2d2 = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_surfaces_pooling2d1)
+        # input_surfaces_pooling2d2 = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d2)
+        # input_surfaces_conv2d3 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_surfaces_pooling2d2)
+        # input_surfaces_pooling2d3 = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d3)
+        input_surfaces_flatten_images = layers.Flatten()(input_surfaces_images)
+        input_surfaces_dense_images = layers.Dense(hp.Int(name='units', min_value=16, max_value=256, step=32))(
+            input_surfaces_flatten_images)
+
+        # embedding_images = layers.Embedding(32, 64)(dense_images)
+
+        # Concatenate both inputs layers
+        x = layers.concatenate(
+            [dense_features, input_full_dense_images, input_objects_dense_images, input_surfaces_dense_images])
+
+        # Output layer
+        output_layer = layers.Dense(1, activation="sigmoid", name="output")(x)
+
+        # Model
+        model = keras.Model(inputs=[input_features, input_full_images, input_objects_image, input_surfaces_images],
+                            outputs=[output_layer])
+        model.summary()
+        return model
+
+    def build_model_tunning(self, hp):
+        model = self.create_model_layers_tunning(self.sizeImage, 3, hp)
+        optimizer = getModelCompilerOptimizer()
+        metrics = ["accuracy", f1_score, recall, precision]
+        self.compile_model(model, optimizer, metrics, tunning=True, hp=hp)
         return model

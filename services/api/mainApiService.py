@@ -8,6 +8,7 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 import logging
 import datetime
+import os
 
 app = FastAPI(middleware=[
     Middleware(CORSMiddleware, allow_origins=["*"])

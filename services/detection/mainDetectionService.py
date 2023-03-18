@@ -25,6 +25,11 @@ if __name__ == "__main__":
             sample["prediction"] = y_pred
             sample["timestamp"] = datetime.datetime.now()
 
+            img_resized, obj_resized, surf_resized = adsModel.get_resized_images_base64(sample)
+            sample["image_resized_base64"] = img_resized
+            sample["object_resized_base64"] = obj_resized
+            sample["surface_resized_base64"] = surf_resized
+
             is_predicted_anomaly = adsModel.is_anomaly(y_pred)
             if is_predicted_anomaly:
                 logging.info("ES UNA ANOMALIA, GUARDANDO EN BASE DE DATOS")

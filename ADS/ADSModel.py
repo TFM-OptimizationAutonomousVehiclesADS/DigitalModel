@@ -23,8 +23,12 @@ class ADSModel:
         self.objectsImagesPath = getPathObjectsImage()
         self.surfacesImagesPath = getPathSurfacesImage()
         self.model = self.__load_model__()
-        self.sizeImage = getSizeImage()
-        self.threshold = getThreshold()
+        widthImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_WIDTH', 45))
+        heightImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_HEIGHT', 80))
+        # self.sizeImage = getSizeImage()
+        self.sizeImage = [widthImage, heightImage]
+        # self.threshold = getThreshold()
+        self.threshold = float(os.environ.get('DIGITAL_MODEL_THRESHOLD_ANOMALY', 0.5))
         self.pathDatasetCsv = getPathDatasetCsv()
         self.dataset = pd.read_csv(self.pathDatasetCsv)
 
@@ -49,6 +53,29 @@ class ADSModel:
     def __preprocessing_y__(self, y):
         y = np.array(y)
         return y
+
+    def get_resized_images_base64(self, sample):
+        key_camera_token = sample["key_camera_token"]
+        filename = key_camera_token + ".jpg"
+
+        im1 = resize_image(Image.open(self.resizedImagesPath + "/" + filename), size_image=self.sizeImage)
+        buffer = io.BytesIO()
+        im1.save(buffer, format='PNG')
+        im1 = buffer.getvalue()
+        im1 = base64.b64encode(im1).decode('utf-8')
+        im2 = resize_image(Image.open(self.objectsImagesPath + "/" + filename), size_image=self.sizeImage)
+        buffer = io.BytesIO()
+        im2.save(buffer, format='PNG')
+        im2 = buffer.getvalue()
+        im2 = base64.b64encode(im2).decode('utf-8')
+        im3 = resize_image(Image.open(self.surfacesImagesPath + "/" + filename), size_image=self.sizeImage)
+        buffer = io.BytesIO()
+        im3.save(buffer, format='PNG')
+        im3 = buffer.getvalue()
+        im3 = base64.b64encode(im3).decode('utf-8')
+        ims_array = [im1, im2, im3]
+
+        return ims_array
 
     def __preprocessing_sample__(self, sample):
         X = []
@@ -153,36 +180,42 @@ class ADSModel:
         base64_image = base64.b64encode(img_bytes.getvalue()).decode('utf-8')
         return base64_image
 
-    def retrain_model(self, retrainWeights=True, tunning=False, model_by_best_epoch=False, random=None, size_split=None, test_size=0.25, epochs=10,
-                      validation_split=0.2):
+    def retrain_model(self, retraining=True, retrainWeights=True, tunning=False, model_by_best_epoch=False, random=None,
+                      size_split=None, test_size=0.25, epochs=10, validation_split=0.2):
         X_train, X_tests, y_train, y_tests = self.__get_train_test_split__(random, size_split, test_size)
 
         model = self.model
-        if tunning:
-            tuner = kt.Hyperband(self.build_model_tunning,
-                                 objective=kt.Objective("val_f1_score", direction="max"),
-                                 max_epochs=epochs,
-                                 factor=3,
-                                 directory='models',
-                                 project_name='tunning_model')
-            stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-            tuner.search(X_train, y_train, epochs=epochs, validation_split=validation_split, callbacks=[stop_early])
-            # Get the optimal hyperparameters
-            best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-            model = tuner.hypermodel.build(best_hps)
+        metric_objective = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_METRIC_OBJECTIVE", "f1_score")
 
+        if not retraining:
+            model = self.create_model_layers(self.sizeImage, 3)
+            optimizer = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_OPTIMIZER", "adam")
+            metrics = ["accuracy", f1_score, recall, precision]
+            self.compile_model(model, optimizer, metrics)
         else:
-            best_hps = self.model.get_config()
-            if retrainWeights:
-                model = self.__load_model__()
+            if tunning:
+                tuner = kt.Hyperband(self.build_model_tunning,
+                                     objective=kt.Objective("val_" + metric_objective, direction="max"),
+                                     max_epochs=epochs,
+                                     factor=3,
+                                     directory='models',
+                                     project_name='tunning_model')
+                stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+                tuner.search(X_train, y_train, epochs=epochs, validation_split=validation_split, callbacks=[stop_early])
+                # Get the optimal hyperparameters
+                best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+                model = tuner.hypermodel.build(best_hps)
             else:
-                model = keras.Model.from_config(best_hps)
+                best_hps = self.model.get_config()
+                if retrainWeights:
+                    model = self.__load_model__()
+                else:
+                    model = keras.Model.from_config(best_hps)
 
         history = model.fit(X_train, y_train, epochs=epochs, validation_split=0.2)
         if model_by_best_epoch:
-            # val_acc_per_epoch = history.history['val_accuracy']
-            val_f1_score_per_epoch = history.history['val_f1_score']
-            best_epoch = val_f1_score_per_epoch.index(max(val_f1_score_per_epoch)) + 1
+            val_metric_per_epoch = history.history['val_' + metric_objective]
+            best_epoch = val_metric_per_epoch.index(max(val_metric_per_epoch)) + 1
             logging.info('Best epoch: %d' % (best_epoch,))
             if tunning:
                 model = tuner.hypermodel.build(best_hps)
@@ -195,38 +228,23 @@ class ADSModel:
 
         evaluation_dict = self.get_evaluation_dict(model, X_tests, y_tests)
         evaluation_dict["random"] = random
+        evaluation_dict["retrain_weights"] = retrainWeights
+        evaluation_dict["tunning"] = tunning
+        evaluation_dict["best_epoch"] = model_by_best_epoch
+        evaluation_dict["history"] = history.history
         evaluation_dict["size_split"] = size_split
         evaluation_dict["test_size"] = test_size
         evaluation_dict["epochs"] = epochs
-        evaluation_dict["retraining"] = True
+        evaluation_dict["retraining"] = retraining
         evaluation_dict["model_config"] = self.model.get_config()
         evaluation_dict["model_image_base64"] = self.get_model_image_base64(model)
-        if self.is_better_model(evaluation_dict):
+
+        if not retraining or self.is_better_model(evaluation_dict, metric=metric_objective):
             logging.info("RETRAINED AND SAVING - NEW BEST MODEL")
             self.save_model(model)
             self.save_evaluation_model(evaluation_dict)
             self.model = model
-        addNewRetrainingEvaluation(evaluation_dict)
 
-    def train_new_model(self, random=None, size_split=None, test_size=0.25, epochs=10):
-        model = self.create_model_layers(self.sizeImage, 3)
-        optimizer = getModelCompilerOptimizer()
-        metrics = ["accuracy", f1_score, recall, precision]
-        self.compile_model(model, optimizer, metrics)
-        X_train, X_tests, y_train, y_tests = self.__get_train_test_split__(random, size_split, test_size)
-        history = model.fit(X_train, y_train, epochs=epochs)
-        evaluation_dict = self.get_evaluation_dict(model, X_tests, y_tests)
-        evaluation_dict["random"] = random
-        evaluation_dict["size_spit"] = size_split
-        evaluation_dict["test_size"] = test_size
-        evaluation_dict["epochs"] = epochs
-        evaluation_dict["optimizer"] = optimizer
-        evaluation_dict["retraining"] = False
-        evaluation_dict["model_config"] = model.get_config()
-        evaluation_dict["model_image_base64"] = self.get_model_image_base64(model)
-        self.save_model(model)
-        self.save_evaluation_model(evaluation_dict)
-        self.model = model
         addNewRetrainingEvaluation(evaluation_dict)
 
     def compile_model(self, model, optimizer="adam", metrics=["accuracy"], tunning=False, hp=None):

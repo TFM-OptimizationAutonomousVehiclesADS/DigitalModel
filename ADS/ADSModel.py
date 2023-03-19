@@ -206,7 +206,7 @@ class ADSModel:
                 best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
                 model = tuner.hypermodel.build(best_hps)
             else:
-                best_hps = model.get_config()
+                best_hps = self.model.get_config()
                 if retrainWeights:
                     model = self.__load_model__()
                 else:
@@ -217,13 +217,19 @@ class ADSModel:
             val_metric_per_epoch = history.history['val_' + metric_objective]
             best_epoch = val_metric_per_epoch.index(max(val_metric_per_epoch)) + 1
             logging.info('Best epoch: %d' % (best_epoch,))
-            if tunning:
-                model = tuner.hypermodel.build(best_hps)
+            if not retraining:
+                model = self.create_model_layers(self.sizeImage, 3)
+                optimizer = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_OPTIMIZER", "adam")
+                metrics = ["accuracy", f1_score, recall, precision]
+                self.compile_model(model, optimizer, metrics)
             else:
-                if retrainWeights:
-                    model = self.__load_model__()
+                if tunning:
+                    model = tuner.hypermodel.build(best_hps)
                 else:
-                    model = keras.Model.from_config(best_hps)
+                    if retrainWeights:
+                        model = self.__load_model__()
+                    else:
+                        model = keras.Model.from_config(best_hps)
             history = model.fit(X_train, y_train, epochs=best_epoch, validation_split=0.2)
 
         evaluation_dict = self.get_evaluation_dict(model, X_tests, y_tests)
@@ -236,7 +242,7 @@ class ADSModel:
         evaluation_dict["test_size"] = test_size
         evaluation_dict["epochs"] = epochs
         evaluation_dict["retraining"] = retraining
-        evaluation_dict["model_config"] = self.model.get_config()
+        evaluation_dict["model_config"] = model.get_config()
         evaluation_dict["model_image_base64"] = self.get_model_image_base64(model)
 
         if not retraining or self.is_better_model(evaluation_dict, metric=metric_objective):

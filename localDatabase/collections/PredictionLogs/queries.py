@@ -9,12 +9,12 @@ def addPredictionLogSample(sampleJson):
     return result
 
 def getAllLogsSample():
-    result = collection.find().sort("timestamp", pymongo.DESCENDING)
+    result = list(collection.find().sort("timestamp", pymongo.DESCENDING))
     return result
 
 def getLastLogsSample(fromDatetime, toDatetime=None):
     if not toDatetime:
         toDatetime = datetime.datetime.now().timestamp()
     query = {"timestamp": {"$gte": fromDatetime, "$lte": toDatetime}}
-    result = collection.find(query).sort("timestamp", pymongo.DESCENDING)
+    result = list(collection.find(query).sort("timestamp", pymongo.DESCENDING))
     return result

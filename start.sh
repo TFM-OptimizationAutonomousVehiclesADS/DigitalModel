@@ -13,6 +13,8 @@ sleep 5
 
 # Iniciar los servicios de Python
 uvicorn services.api.mainApiService:app --host 0.0.0.0 --port 8001 &
+sleep 5
+
 python3 /app/services/detection/mainDetectionService.py > /proc/1/fd/1 2>&1 &
 python3 /app/services/simulator/mainRandomSamplesGeneratorService.py > /proc/1/fd/1 2>&1 &
 python3 /app/services/retraining/mainRetrainingService.py > /proc/1/fd/1 2>&1 &

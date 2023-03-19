@@ -10,6 +10,7 @@ from starlette.middleware.cors import CORSMiddleware
 import logging
 import datetime
 from ADS.ADSModel import ADSModel
+import json
 import os
 
 app = FastAPI(middleware=[
@@ -27,7 +28,7 @@ async def all_last_anomalies():
     result = getAllAnomaliesSamples()
     logging.info(result)
     if result:
-        return {"anomalies": result}
+        return {"anomalies": json.dumps(result, default=str)}
     else:
         return "error", 500
 
@@ -44,7 +45,7 @@ async def last_anomalies_by_dates(fecha_inicio: str, fecha_fin: str):
     result = getLastAnomaliesSamples(fecha_inicio_obj, fecha_fin_obj)
     logging.info(result)
     if result:
-        return {"anomalies": result}
+        return {"anomalies": json.dumps(result, default=str)}
     else:
         return "error", 500
 
@@ -53,7 +54,7 @@ async def all_logs_samples():
     result = getAllLogsSample()
     logging.info(result)
     if result:
-        return {"logs": result}
+        return {"logs": json.dumps(result, default=str)}
     else:
         return "error", 500
 
@@ -70,7 +71,7 @@ async def logs_samples_by_dates(fecha_inicio: str, fecha_fin: str):
     result = getLastLogsSample(fecha_inicio_obj, fecha_fin_obj)
     logging.info(result)
     if result:
-        return {"logs": result}
+        return {"logs": json.dumps(result, default=str)}
     else:
         return "error", 500
 
@@ -79,7 +80,7 @@ async def all_logs_retraining_evaluation():
     result = getAllRetrainingEvaluations()
     logging.info(result)
     if result:
-        return {"logs": result}
+        return {"logs": json.dumps(result, default=str)}
     else:
         return "error", 500
 
@@ -96,7 +97,7 @@ async def logs_retraining_evaluation(fecha_inicio: str, fecha_fin: str):
     result = getLastRetrainingEvaluations(fecha_inicio_obj, fecha_fin_obj)
     logging.info(result)
     if result:
-        return {"logs": result}
+        return {"logs": json.dumps(result, default=str)}
     else:
         return "error", 500
 

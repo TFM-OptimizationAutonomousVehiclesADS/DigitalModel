@@ -1,6 +1,5 @@
 import datetime
 import pymongo
-
 from localDatabase.collections.client import db
 
 collection = db.TrainingEvaluationLogs
@@ -15,12 +14,12 @@ def getLastEvaluation():
     return result
 
 def getAllRetrainingEvaluations():
-    result = collection.find().sort("timestamp", pymongo.DESCENDING)
+    result = list(collection.find().sort("timestamp", pymongo.DESCENDING))
     return result
 
 def getLastRetrainingEvaluations(fromDatetime, toDatetime=None):
     if not toDatetime:
         toDatetime = datetime.datetime.now().timestamp()
     query = {"timestamp": {"$gte": fromDatetime, "$lte": toDatetime}}
-    result = collection.find(query).sort("timestamp", pymongo.DESCENDING)
+    result = list(collection.find(query).sort("timestamp", pymongo.DESCENDING))
     return result

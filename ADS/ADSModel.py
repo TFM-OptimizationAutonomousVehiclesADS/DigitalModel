@@ -23,10 +23,10 @@ class ADSModel:
         self.objectsImagesPath = getPathObjectsImage()
         self.surfacesImagesPath = getPathSurfacesImage()
         self.model = self.__load_model__()
-        widthImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_WIDTH', 45))
-        heightImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_HEIGHT', 80))
+        widthImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_WIDTH', 80))
+        heightImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_HEIGHT', 45))
         # self.sizeImage = getSizeImage()
-        self.sizeImage = [widthImage, heightImage]
+        self.sizeImage = [heightImage, widthImage]
         # self.threshold = getThreshold()
         self.threshold = float(os.environ.get('DIGITAL_MODEL_THRESHOLD_ANOMALY', 0.5))
         self.pathDatasetCsv = getPathDatasetCsv()

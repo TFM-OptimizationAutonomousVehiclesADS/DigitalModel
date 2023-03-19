@@ -10,7 +10,7 @@ if __name__ == "__main__":
     logging.info("** RETRAINING TASK: Iniciando Modelo de Detección de Anomalías....")
     adsModel = ADSModel()
 
-    test_size = int(os.environ.get('DIGITAL_MODEL_RETRAINING_TEST_SIZE', 0.25))
+    test_size = float(os.environ.get('DIGITAL_MODEL_RETRAINING_TEST_SIZE', 0.25))
     min_size_split = int(os.environ.get('DIGITAL_MODEL_RETRAINING_MIN_SPLIT', 2000))
     max_size_split = int(os.environ.get('DIGITAL_MODEL_RETRAINING_MAX_SPLIT', 5000))
     min_epochs = int(os.environ.get('DIGITAL_MODEL_RETRAINING_MIN_EPOCHS', 10))

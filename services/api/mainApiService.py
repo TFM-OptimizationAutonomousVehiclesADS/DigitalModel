@@ -3,11 +3,13 @@ import uvicorn
 from localDatabase.collections.ApiAccessConfiguration.queries import getActualIpAndPort
 from localDatabase.collections.DetectedAnomalies.queries import getLastAnomaliesSamples, getAllAnomaliesSamples
 from localDatabase.collections.PredictionLogs.queries import getAllLogsSample, getLastLogsSample
+from localDatabase.collections.TrainingEvaluationLogs.queries import getAllRetrainingEvaluations, getLastRetrainingEvaluations
 from localDatabase.queues.queueSamples import QueueSamples
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 import logging
 import datetime
+from ADS.ADSModel import ADSModel
 import os
 
 app = FastAPI(middleware=[
@@ -69,6 +71,41 @@ async def logs_samples_by_dates(fecha_inicio: str, fecha_fin: str):
     logging.info(result)
     if result:
         return {"logs": result}
+    else:
+        return "error", 500
+
+@app.get("/all_logs_retraining_evaluation")
+async def all_logs_retraining_evaluation():
+    result = getAllRetrainingEvaluations()
+    logging.info(result)
+    if result:
+        return {"logs": result}
+    else:
+        return "error", 500
+
+@app.get("/logs_retraining_evaluation/{fecha_inicio}/{fecha_fin}")
+async def logs_retraining_evaluation(fecha_inicio: str, fecha_fin: str):
+    # Convertir las cadenas de fecha a objetos de fecha de Python
+    fecha_inicio_obj = None
+    if fecha_inicio:
+        fecha_inicio_obj = datetime.datetime.strptime(fecha_inicio, "%d/%m/%YT%H:%M")
+    fecha_fin_obj = None
+    if fecha_fin:
+        fecha_fin_obj = datetime.datetime.strptime(fecha_fin, "%d/%m/%YT%H:%M")
+
+    result = getLastRetrainingEvaluations(fecha_inicio_obj, fecha_fin_obj)
+    logging.info(result)
+    if result:
+        return {"logs": result}
+    else:
+        return "error", 500
+
+@app.get("/actual_evaluation_dict")
+async def actual_evaluation_dict():
+    adsModel = ADSModel()
+    evaluation_dict = adsModel.get_actual_evaluation_model()
+    if evaluation_dict:
+        return {"evaluation_dict": evaluation_dict}
     else:
         return "error", 500
 

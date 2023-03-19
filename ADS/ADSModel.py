@@ -206,7 +206,7 @@ class ADSModel:
                 best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
                 model = tuner.hypermodel.build(best_hps)
             else:
-                best_hps = self.model.get_config()
+                best_hps = model.get_config()
                 if retrainWeights:
                     model = self.__load_model__()
                 else:

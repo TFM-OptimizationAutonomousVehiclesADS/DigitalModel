@@ -12,6 +12,7 @@ if __name__ == "__main__":
 
     logging.info("** INIT TRAINING: Iniciando Modelo de Detección de Anomalías....")
     adsModel = ADSModel()
-    logging.info("** INIT TRAINING: Comenzando entrenamiento....")
-    adsModel.retrain_model(random=random_samples, size_split=min_size_split, test_size=test_size, epochs=min_epochs, model_by_best_epoch=best_epoch, retraining=False)
-    logging.info("** INIT TRAINING: FIN ENRENAMIENTO")
+    if adsModel.model is None:
+        logging.info("** INIT TRAINING: Comenzando entrenamiento....")
+        adsModel.retrain_model(random=random_samples, size_split=min_size_split, test_size=test_size, epochs=min_epochs, model_by_best_epoch=best_epoch, retraining=False)
+        logging.info("** INIT TRAINING: FIN ENRENAMIENTO")

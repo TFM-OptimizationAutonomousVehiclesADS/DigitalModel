@@ -1,6 +1,7 @@
 from localDatabase.collections.client import db
 import pymongo
 import datetime
+import os
 
 collection = db.SamplesDataset
 
@@ -10,8 +11,10 @@ def setDatasetsPath(config):
     return result
 
 def getPathDatasetCsv():
-    result = collection.find_one(sort=[("timestamp", pymongo.DESCENDING)])
-    path = result.get("pathDatasetCsv")
+    path = os.environ.get('DIGITAL_MODEL_DATASET_PATH')
+    if not path or path == "":
+        result = collection.find_one(sort=[("timestamp", pymongo.DESCENDING)])
+        path = result.get("pathDatasetCsv")
     return path
 
 def getPathResizedImage():

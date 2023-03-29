@@ -13,6 +13,7 @@ import io
 import base64
 import os
 import keras_tuner as kt
+import random
 
 
 class ADSModel:
@@ -276,51 +277,82 @@ class ADSModel:
                           metrics=metrics)
 
     def create_model_layers(self, size_image, number_features):
-        # Process features input layer
-        input_features = layers.Input(shape=(number_features,), name="features")
-        dense_features = layers.Dense(64)(input_features)
 
-        # Process image input layer
-        input_full_images = layers.Input(shape=(size_image[0], size_image[1], 3), name="full_images")
-        input_full_conv2d1 = layers.Conv2D(16, (3, 3), activation='relu')(input_full_images)
-        input_full_pooling2d1 = layers.MaxPooling2D(2, 2)(input_full_conv2d1)
-        # input_full_conv2d2 = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_full_pooling2d1)
-        # input_full_pooling2d2 = layers.MaxPooling2D(2, 2)(input_full_conv2d2)
-        # input_full_conv2d3 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_full_pooling2d2)
-        # input_full_pooling2d3 = layers.MaxPooling2D(2, 2)(input_full_conv2d3)
-        input_full_flatten_images = layers.Flatten()(input_full_pooling2d1)
-        input_full_dense_images = layers.Dense(64)(input_full_flatten_images)
+        # FEATURES LAYER
+        final_layer_features = None
+        has_dense_features = random.random() >= 0.5
+        input_features = final_layer_features = layers.Input(shape=(number_features,), name="features")
+        if has_dense_features:
+            dense_features = final_layer_features = layers.Dense(random.choice([16, 32, 64, 128]))(input_features)
 
-        # Process objects_image input layer
-        input_objects_image = layers.Input(shape=(size_image[0], size_image[1], 3), name="objects_images")
-        input_objects_conv2d1 = layers.Conv2D(16, (3, 3), activation='relu')(input_objects_image)
-        input_objects_pooling2d1 = layers.MaxPooling2D(2, 2)(input_objects_conv2d1)
-        # input_objects_conv2d2 = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_objects_pooling2d1)
-        # input_objects_pooling2d2 = layers.MaxPooling2D(2, 2)(input_objects_conv2d2)
-        # input_objects_conv2d3 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_objects_pooling2d2)
-        # input_objects_pooling2d3 = layers.MaxPooling2D(2, 2)(input_objects_conv2d3)
-        input_objects_flatten_images = layers.Flatten()(input_objects_pooling2d1)
-        input_objects_dense_images = layers.Dense(64)(input_objects_flatten_images)
+        # RESIZED IMAGES LAYER
+        has_dense_resized_images = random.random() >= 0.5
+        has_conv2d1_resized_images = random.random() >= 0.5
+        has_conv2d2_resized_images = random.random() >= 0.5
+        has_conv2d3_resized_images = random.random() >= 0.5
+        final_layer_resized_images = None
 
-        # Process surfaces input layer
-        input_surfaces_images = layers.Input(shape=(size_image[0], size_image[1], 3), name="surfaces_images")
-        input_surfaces_conv2d1 = layers.Conv2D(16, (3, 3), activation='relu')(input_surfaces_images)
-        input_surfaces_pooling2d1 = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d1)
-        # input_surfaces_conv2d2 = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_surfaces_pooling2d1)
-        # input_surfaces_pooling2d2 = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d2)
-        # input_surfaces_conv2d3 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_surfaces_pooling2d2)
-        # input_surfaces_pooling2d3 = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d3)
-        input_surfaces_flatten_images = layers.Flatten()(input_surfaces_pooling2d1)
-        input_surfaces_dense_images = layers.Dense(64)(input_surfaces_flatten_images)
+        input_full_images = final_layer_resized_images = layers.Input(shape=(size_image[0], size_image[1], 3), name="full_images")
+        if has_conv2d1_resized_images:
+            input_full_conv2d1 = final_layer_resized_images = layers.Conv2D(16, (3, 3), activation='relu')(input_full_images)
+            input_full_pooling2d1 = final_layer_resized_images = layers.MaxPooling2D(2, 2)(input_full_conv2d1)
+            if has_conv2d2_resized_images:
+                input_full_conv2d2 = final_layer_resized_images = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_full_pooling2d1)
+                input_full_pooling2d2 = final_layer_resized_images = layers.MaxPooling2D(2, 2)(input_full_conv2d2)
+                if has_conv2d3_resized_images:
+                    input_full_conv2d3 = final_layer_resized_images = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_full_pooling2d2)
+                    input_full_pooling2d3 = final_layer_resized_images = layers.MaxPooling2D(2, 2)(input_full_conv2d3)
+        input_full_flatten_images = final_layer_resized_images = layers.Flatten()(final_layer_resized_images)
+        if has_dense_resized_images:
+            input_full_dense_images = final_layer_resized_images = layers.Dense(random.choice([16, 32, 64, 128]))(input_full_flatten_images)
 
-        # embedding_images = layers.Embedding(32, 64)(dense_images)
+        # OBJECT IMAGES LAYER
+        has_dense_object_images = random.random() >= 0.5
+        has_conv2d1_object_images = random.random() >= 0.5
+        has_conv2d2_object_images = random.random() >= 0.5
+        has_conv2d3_object_images = random.random() >= 0.5
+        final_layer_object_images = None
 
-        # Concatenate both inputs layers
-        x = layers.concatenate(
-            [input_features, input_full_flatten_images, input_objects_flatten_images, input_surfaces_flatten_images])
+        input_objects_image = final_layer_object_images = layers.Input(shape=(size_image[0], size_image[1], 3), name="objects_images")
+        if has_conv2d1_object_images:
+            input_objects_conv2d1 = final_layer_object_images = layers.Conv2D(16, (3, 3), activation='relu')(input_objects_image)
+            input_objects_pooling2d1 = final_layer_object_images = layers.MaxPooling2D(2, 2)(input_objects_conv2d1)
+            if has_conv2d2_object_images:
+                input_objects_conv2d2 = final_layer_object_images = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_objects_pooling2d1)
+                input_objects_pooling2d2 = final_layer_object_images = layers.MaxPooling2D(2, 2)(input_objects_conv2d2)
+                if has_conv2d3_object_images:
+                    input_objects_conv2d3 = final_layer_object_images = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_objects_pooling2d2)
+                    input_objects_pooling2d3 = final_layer_object_images = layers.MaxPooling2D(2, 2)(input_objects_conv2d3)
+        input_objects_flatten_images = final_layer_object_images = layers.Flatten()(final_layer_object_images)
+        if has_dense_object_images:
+            input_objects_dense_images = final_layer_object_images = layers.Dense(random.choice([16, 32, 64, 128]))(input_objects_flatten_images)
 
-        # Output layer
-        output_layer = layers.Dense(1, activation="sigmoid", name="output")(x)
+        # OBJECT IMAGES LAYER
+        has_dense_surface_images = random.random() >= 0.5
+        has_conv2d1_surface_images = random.random() >= 0.5
+        has_conv2d2_surface_images = random.random() >= 0.5
+        has_conv2d3_surface_images = random.random() >= 0.5
+        final_layer_surface_images = None
+
+        input_surfaces_images = final_layer_surface_images = layers.Input(shape=(size_image[0], size_image[1], 3), name="surfaces_images")
+        if has_conv2d1_surface_images:
+            input_surfaces_conv2d1 = final_layer_surface_images = layers.Conv2D(16, (3, 3), activation='relu')(input_surfaces_images)
+            input_surfaces_pooling2d1 = final_layer_surface_images = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d1)
+            if has_conv2d2_surface_images:
+                input_surfaces_conv2d2 = final_layer_surface_images = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_surfaces_pooling2d1)
+                input_surfaces_pooling2d2 = final_layer_surface_images = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d2)
+                if has_conv2d3_surface_images:
+                    input_surfaces_conv2d3 = final_layer_surface_images = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_surfaces_pooling2d2)
+                    input_surfaces_pooling2d3 = final_layer_surface_images = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d3)
+        input_surfaces_flatten_images = final_layer_surface_images = layers.Flatten()(final_layer_surface_images)
+        if has_dense_surface_images:
+            input_surfaces_dense_images = final_layer_surface_images = layers.Dense(random.choice([16, 32, 64, 128]))(input_surfaces_flatten_images)
+
+        # CONCATENATE LAYER
+        concatenate_layer = layers.concatenate([final_layer_features, final_layer_resized_images, final_layer_object_images, final_layer_surface_images])
+
+        # OUTPUT LAYER
+        output_layer = layers.Dense(1, activation="sigmoid", name="output")(concatenate_layer)
 
         # Model
         model = keras.Model(inputs=[input_features, input_full_images, input_objects_image, input_surfaces_images],
@@ -329,54 +361,83 @@ class ADSModel:
         return model
 
     def create_model_layers_tunning(self, size_image, number_features, hp):
-        # Process features input layer
-        input_features = layers.Input(shape=(number_features,), name="features")
-        dense_features = layers.Dense(units=hp.Int(name='units', min_value=16, max_value=256, step=32))(input_features)
 
-        # Process image input layer
-        input_full_images = layers.Input(shape=(size_image[0], size_image[1], 3), name="full_images")
-        # input_full_conv2d1 = layers.Conv2D(16, (3, 3), activation='relu')(input_full_images)
-        # input_full_pooling2d1 = layers.MaxPooling2D(2, 2)(input_full_conv2d1)
-        # input_full_conv2d2 = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_full_pooling2d1)
-        # input_full_pooling2d2 = layers.MaxPooling2D(2, 2)(input_full_conv2d2)
-        # input_full_conv2d3 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_full_pooling2d2)
-        # input_full_pooling2d3 = layers.MaxPooling2D(2, 2)(input_full_conv2d3)
-        input_full_flatten_images = layers.Flatten()(input_full_images)
-        input_full_dense_images = layers.Dense(hp.Int(name='units', min_value=16, max_value=256, step=32))(
-            input_full_flatten_images)
+        # FEATURES LAYER
+        final_layer_features = None
+        has_dense_features = random.random() >= 0.5
+        input_features = final_layer_features = layers.Input(shape=(number_features,), name="features")
+        if has_dense_features:
+            dense_features = final_layer_features = layers.Dense(units=hp.Int(name='units', min_value=16, max_value=256, step=32))(input_features)
 
-        # Process objects_image input layer
-        input_objects_image = layers.Input(shape=(size_image[0], size_image[1], 3), name="objects_images")
-        # input_objects_conv2d1 = layers.Conv2D(16, (3, 3), activation='relu')(input_objects_image)
-        # input_objects_pooling2d1 = layers.MaxPooling2D(2, 2)(input_objects_conv2d1)
-        # input_objects_conv2d2 = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_objects_pooling2d1)
-        # input_objects_pooling2d2 = layers.MaxPooling2D(2, 2)(input_objects_conv2d2)
-        # input_objects_conv2d3 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_objects_pooling2d2)
-        # input_objects_pooling2d3 = layers.MaxPooling2D(2, 2)(input_objects_conv2d3)
-        input_objects_flatten_images = layers.Flatten()(input_objects_image)
-        input_objects_dense_images = layers.Dense(hp.Int(name='units', min_value=16, max_value=256, step=32))(
-            input_objects_flatten_images)
+        # RESIZED IMAGES LAYER
+        has_dense_resized_images = random.random() >= 0.5
+        has_conv2d1_resized_images = random.random() >= 0.5
+        has_conv2d2_resized_images = random.random() >= 0.5
+        has_conv2d3_resized_images = random.random() >= 0.5
+        final_layer_resized_images = None
 
-        # Process surfaces input layer
-        input_surfaces_images = layers.Input(shape=(size_image[0], size_image[1], 3), name="surfaces_images")
-        # input_surfaces_conv2d1 = layers.Conv2D(16, (3, 3), activation='relu')(input_surfaces_images)
-        # input_surfaces_pooling2d1 = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d1)
-        # input_surfaces_conv2d2 = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_surfaces_pooling2d1)
-        # input_surfaces_pooling2d2 = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d2)
-        # input_surfaces_conv2d3 = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_surfaces_pooling2d2)
-        # input_surfaces_pooling2d3 = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d3)
-        input_surfaces_flatten_images = layers.Flatten()(input_surfaces_images)
-        input_surfaces_dense_images = layers.Dense(hp.Int(name='units', min_value=16, max_value=256, step=32))(
-            input_surfaces_flatten_images)
+        input_full_images = final_layer_resized_images = layers.Input(shape=(size_image[0], size_image[1], 3), name="full_images")
+        if has_conv2d1_resized_images:
+            input_full_conv2d1 = final_layer_resized_images = layers.Conv2D(16, (3, 3), activation='relu')(input_full_images)
+            input_full_pooling2d1 = final_layer_resized_images = layers.MaxPooling2D(2, 2)(input_full_conv2d1)
+            if has_conv2d2_resized_images:
+                input_full_conv2d2 = final_layer_resized_images = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_full_pooling2d1)
+                input_full_pooling2d2 = final_layer_resized_images = layers.MaxPooling2D(2, 2)(input_full_conv2d2)
+                if has_conv2d3_resized_images:
+                    input_full_conv2d3 = final_layer_resized_images = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_full_pooling2d2)
+                    input_full_pooling2d3 = final_layer_resized_images = layers.MaxPooling2D(2, 2)(input_full_conv2d3)
+        input_full_flatten_images = final_layer_resized_images = layers.Flatten()(final_layer_resized_images)
+        if has_dense_resized_images:
+            input_full_dense_images = final_layer_resized_images = layers.Dense(hp.Int(name='units', min_value=16, max_value=256, step=32))(input_full_flatten_images)
 
-        # embedding_images = layers.Embedding(32, 64)(dense_images)
+        # OBJECT IMAGES LAYER
+        has_dense_object_images = random.random() >= 0.5
+        has_conv2d1_object_images = random.random() >= 0.5
+        has_conv2d2_object_images = random.random() >= 0.5
+        has_conv2d3_object_images = random.random() >= 0.5
+        final_layer_object_images = None
 
-        # Concatenate both inputs layers
-        x = layers.concatenate(
-            [dense_features, input_full_dense_images, input_objects_dense_images, input_surfaces_dense_images])
+        input_objects_image = final_layer_object_images = layers.Input(shape=(size_image[0], size_image[1], 3), name="objects_images")
+        if has_conv2d1_object_images:
+            input_objects_conv2d1 = final_layer_object_images = layers.Conv2D(16, (3, 3), activation='relu')(input_objects_image)
+            input_objects_pooling2d1 = final_layer_object_images = layers.MaxPooling2D(2, 2)(input_objects_conv2d1)
+            if has_conv2d2_object_images:
+                input_objects_conv2d2 = final_layer_object_images = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_objects_pooling2d1)
+                input_objects_pooling2d2 = final_layer_object_images = layers.MaxPooling2D(2, 2)(input_objects_conv2d2)
+                if has_conv2d3_object_images:
+                    input_objects_conv2d3 = final_layer_object_images = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_objects_pooling2d2)
+                    input_objects_pooling2d3 = final_layer_object_images = layers.MaxPooling2D(2, 2)(input_objects_conv2d3)
+        input_objects_flatten_images = final_layer_object_images = layers.Flatten()(final_layer_object_images)
+        if has_dense_object_images:
+            input_objects_dense_images = final_layer_object_images = layers.Dense(hp.Int(name='units', min_value=16, max_value=256, step=32))(input_objects_flatten_images)
+
+        # OBJECT IMAGES LAYER
+        has_dense_surface_images = random.random() >= 0.5
+        has_conv2d1_surface_images = random.random() >= 0.5
+        has_conv2d2_surface_images = random.random() >= 0.5
+        has_conv2d3_surface_images = random.random() >= 0.5
+        final_layer_surface_images = None
+
+        input_surfaces_images = final_layer_surface_images = layers.Input(shape=(size_image[0], size_image[1], 3), name="surfaces_images")
+        if has_conv2d1_surface_images:
+            input_surfaces_conv2d1 = final_layer_surface_images = layers.Conv2D(16, (3, 3), activation='relu')(input_surfaces_images)
+            input_surfaces_pooling2d1 = final_layer_surface_images = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d1)
+            if has_conv2d2_surface_images:
+                input_surfaces_conv2d2 = final_layer_surface_images = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(input_surfaces_pooling2d1)
+                input_surfaces_pooling2d2 = final_layer_surface_images = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d2)
+                if has_conv2d3_surface_images:
+                    input_surfaces_conv2d3 = final_layer_surface_images = tf.keras.layers.Conv2D(64, (3, 3), activation='relu')(input_surfaces_pooling2d2)
+                    input_surfaces_pooling2d3 = final_layer_surface_images = layers.MaxPooling2D(2, 2)(input_surfaces_conv2d3)
+        input_surfaces_flatten_images = final_layer_surface_images = layers.Flatten()(input_surfaces_images)
+        if has_dense_surface_images:
+            input_surfaces_dense_images = final_layer_surface_images = layers.Dense(hp.Int(name='units', min_value=16, max_value=256, step=32))(input_surfaces_flatten_images)
+
+        # CONCATENATE LAYERS
+        concatenate_layer = layers.concatenate(
+            [final_layer_features, final_layer_resized_images, final_layer_object_images, final_layer_surface_images])
 
         # Output layer
-        output_layer = layers.Dense(1, activation="sigmoid", name="output")(x)
+        output_layer = layers.Dense(1, activation="sigmoid", name="output")(concatenate_layer)
 
         # Model
         model = keras.Model(inputs=[input_features, input_full_images, input_objects_image, input_surfaces_images],

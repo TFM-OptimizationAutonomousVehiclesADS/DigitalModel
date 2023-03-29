@@ -89,9 +89,9 @@ class ADSModel:
             object_image = Image.open(self.objectsImagesPath + "/" + filename)
             surface_image = Image.open(self.surfacesImagesPath + "/" + filename)
         else:
-            resized_image = Image.open(BytesIO(base64.b64decode(sample["resizedImage"])))
-            object_image = Image.open(BytesIO(base64.b64decode(sample["objectImage"])))
-            surface_image = Image.open(BytesIO(base64.b64decode(sample["surfaceImage"])))
+            resized_image = Image.open(io.BytesIO(base64.b64decode(sample["resizedImage"].encode("utf-8"))))
+            object_image = Image.open(io.BytesIO(base64.b64decode(sample["objectImage"].encode("utf-8"))))
+            surface_image = Image.open(io.BytesIO(base64.b64decode(sample["surfaceImage"].encode("utf-8"))))
 
         im1 = np.array(
             resize_image(resized_image, size_image=self.sizeImage)) / 255.0

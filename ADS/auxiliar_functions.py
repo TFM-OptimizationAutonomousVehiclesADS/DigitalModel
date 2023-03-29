@@ -4,6 +4,7 @@ from tensorflow.keras import datasets, layers, models
 from tensorflow.keras import backend as K
 from sklearn.model_selection import train_test_split
 # import keras.backend as K
+import base64
 
 
 def resize_image(im, size_image=None):

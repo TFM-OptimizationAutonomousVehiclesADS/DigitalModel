@@ -81,17 +81,24 @@ class ADSModel:
         X = []
         y = []
 
-        key_camera_token = sample["key_camera_token"]
-        filename = key_camera_token + ".jpg"
+        if "key_camera_token" in sample:
+            key_camera_token = sample["key_camera_token"]
+            filename = key_camera_token + ".jpg"
+            resized_image = Image.open(self.resizedImagesPath + "/" + filename)
+            object_image = Image.open(self.objectsImagesPath + "/" + filename)
+            surface_image = Image.open(self.surfacesImagesPath + "/" + filename)
+        else:
+            resized_image = Image.open(BytesIO(base64.b64decode(sample["resizedImage"])))
+            object_image = Image.open(BytesIO(base64.b64decode(sample["objectImage"])))
+            surface_image = Image.open(BytesIO(base64.b64decode(sample["surfaceImage"])))
 
         im1 = np.array(
-            resize_image(Image.open(self.resizedImagesPath + "/" + filename), size_image=self.sizeImage)) / 255.0
+            resize_image(resized_image, size_image=self.sizeImage)) / 255.0
         im2 = np.array(
-            resize_image(Image.open(self.objectsImagesPath + "/" + filename), size_image=self.sizeImage)) / 255.0
+            resize_image(object_image, size_image=self.sizeImage)) / 255.0
         im3 = np.array(
-            resize_image(Image.open(self.surfacesImagesPath + "/" + filename), size_image=self.sizeImage)) / 255.0
+            resize_image(surface_image, size_image=self.sizeImage)) / 255.0
         ims_array = [im1, im2, im3]
-
         camera = get_float_channel_camera(sample["channel_camera"])
         speed = sample["speed"]
         rotation = sample["rotation_rate_z"]
@@ -129,8 +136,8 @@ class ADSModel:
     def is_sure_normal_sample(self, y_pred):
         return y_pred <= 0.1
 
-    def __get_train_test_split__(self, random=None, size_split=None, test_size=0.25):
-        dataset = self.dataset
+    def __get_train_test_split__(self, dataframe, random=None, size_split=None, test_size=0.25):
+        dataset = dataframe
         if random:
             dataset = dataset.sample(frac=1)
         if size_split:
@@ -142,6 +149,10 @@ class ADSModel:
         y_train = self.__preprocessing_y__(y_train)
         y_tests = self.__preprocessing_y__(y_tests)
         return X_train_json, X_tests_json, y_train, y_tests
+
+    def evaluate_dataframe(self, dataframe):
+        X_train, X_tests, y_train, y_tests = self.__get_train_test_split__(dataframe, random=None, size_split=None, test_size=1.0)
+        return get_evaluation_dict(self.model, X_tests, y_tests)
 
     def get_evaluation_dict(self, model, X_tests, y_tests):
         evaulation_dict = get_evaluation_model(model, X_tests, y_tests)
@@ -182,7 +193,7 @@ class ADSModel:
 
     def retrain_model(self, retraining=True, retrainWeights=True, tunning=False, model_by_best_epoch=False, random=None,
                       size_split=None, test_size=0.25, epochs=10, validation_split=0.2):
-        X_train, X_tests, y_train, y_tests = self.__get_train_test_split__(random, size_split, test_size)
+        X_train, X_tests, y_train, y_tests = self.__get_train_test_split__(self.dataset, random, size_split, test_size)
 
         model = self.model
         metric_objective = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_METRIC_OBJECTIVE", "f1_score")

@@ -122,6 +122,37 @@ async def listen_sample(info: Request):
     else:
         return {"error": added}, 500
 
+@app.post("/predict_single")
+async def predict_single(info: Request):
+    sampleJson = await info.json()
+    logging.info(sampleJson)
+    adsModel = ADSModel()
+    prediction = adsModel.predict_sample(sampleJson)
+    sampleJson["prediction"] = prediction
+    return {"sample": sampleJson}
+
+@app.post("/predict_multiple")
+async def predict_multiple(info: Request):
+    df_dict = await info.json()
+    df = pd.read_json(df_dict)
+    adsModel = ADSModel()
+    samplesJson = []
+    for index, row in df.iterrows():
+        sampleJson = row.to_dict()
+        prediction = adsModel.predict_sample(sampleJson)
+        sampleJson["prediction"] = prediction
+        samplesJson.append(sampleJson)
+    return {"samples": samplesJson}
+
+@app.post("/evaluate_dataframe")
+async def evaluate_dataframe(info: Request):
+    df_dict = await info.json()
+    df = pd.read_json(df_dict)
+
+    adsModel = ADSModel()
+    evaluation_dict = adsModel.evaluate_dataframe(df)
+
+    return {"evaluation_dict": evaluation_dict}
 
 if __name__ == "__main__":
     try:

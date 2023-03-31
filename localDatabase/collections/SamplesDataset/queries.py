@@ -17,6 +17,20 @@ def getPathDatasetCsv():
         path = result.get("pathDatasetCsv")
     return path
 
+def getPathDatasetReviewedCsv():
+    path = os.environ.get('DIGITAL_MODEL_DATASET_REVIEWED_PATH')
+    if not path or path == "":
+        result = collection.find_one(sort=[("timestamp", pymongo.DESCENDING)])
+        path = result.get("pathDatasetReviewedCsv")
+    return path
+
+def getPathDatasetHighAnomaliesCsv():
+    path = os.environ.get('DIGITAL_MODEL_DATASET_HIGH_ANOMALIES_PATH')
+    if not path or path == "":
+        result = collection.find_one(sort=[("timestamp", pymongo.DESCENDING)])
+        path = result.get("pathDatasetHighAnomaliesCsv")
+    return path
+
 def getPathResizedImage():
     result = collection.find_one(sort=[("timestamp", pymongo.DESCENDING)])
     path = result.get("pathResizedImage")

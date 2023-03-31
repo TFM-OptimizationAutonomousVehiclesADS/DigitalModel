@@ -26,12 +26,29 @@ class ADSModel:
         self.model = self.__load_model__()
         widthImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_WIDTH', 80))
         heightImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_HEIGHT', 45))
-        # self.sizeImage = getSizeImage()
         self.sizeImage = [heightImage, widthImage]
-        # self.threshold = getThreshold()
         self.threshold = float(os.environ.get('DIGITAL_MODEL_THRESHOLD_ANOMALY', 0.5))
+        self.thresholdHigh = float(os.environ.get('DIGITAL_MODEL_HIGH_THRESHOLD_ANOMALY', 0.85))
         self.pathDatasetCsv = getPathDatasetCsv()
+        self.pathDatasetReviewedCsv = getPathDatasetReviewedCsv()
+        self.pathDatasetHighAnomaliesCsv = getPathDatasetHighAnomaliesCsv()
         self.dataset = pd.read_csv(self.pathDatasetCsv)
+        self.__load_dataset_reviewed__()
+        self.__load_dataset_high_anomalies__()
+
+    def __load_dataset_reviewed__(self):
+        if os.path.exists(self.pathDatasetReviewedCsv):
+            self.datasetReviewed = pd.read_csv(self.pathDatasetReviewedCsv)
+        else:
+            self.datasetReviewed = pd.DataFrame(columns=self.dataset.columns)
+            self.datasetReviewed.to_csv(self.pathDatasetReviewedCsv, index=False)
+
+    def __load_dataset_high_anomalies__(self):
+        if os.path.exists(self.pathDatasetHighAnomaliesCsv):
+            self.datasetHighAnomalies = pd.read_csv(self.pathDatasetHighAnomaliesCsv)
+        else:
+            self.datasetHighAnomalies = pd.DataFrame(columns=self.dataset.columns)
+            self.datasetHighAnomalies.to_csv(self.pathDatasetHighAnomaliesCsv, index=False)
 
     def __load_model__(self):
         if os.path.exists(self.modelPath):
@@ -104,10 +121,10 @@ class ADSModel:
             resize_image(object_image, size_image=self.sizeImage)) / 255.0
         im3 = np.array(
             resize_image(surface_image, size_image=self.sizeImage)) / 255.0
-        ims_array = [im1, im2, im3]
-        camera = get_float_channel_camera(sample["channel_camera"])
-        speed = sample["speed"]
-        rotation = sample["rotation_rate_z"]
+
+        camera = int(get_float_channel_camera(sample["channel_camera"]))
+        speed = float(sample["speed"])
+        rotation = float(sample["rotation_rate_z"])
         features_array = [camera, speed, rotation]
 
         X.append([im1, im2, im3, features_array])
@@ -134,20 +151,30 @@ class ADSModel:
         y = self.__preprocessing_y__(y)
         yhat = self.model.predict(X)
         yhat = float(yhat[0][0])
+
+        if float(yhat) > self.thresholdHigh:
+            sample["prediction"] = float(yhat)
+            self.add_sample_to_high_anomalies_dataset(sample)
+
         return yhat
 
     def is_anomaly(self, y_pred):
-        return y_pred >= self.threshold
+        return float(y_pred) >= self.threshold
 
     def is_sure_normal_sample(self, y_pred):
         return y_pred <= 0.1
 
-    def __get_train_test_split__(self, dataframe, random=None, size_split=None, test_size=0.25):
+    def __get_train_test_split__(self, dataframe, combine_with_reviewed_dataset=True, random=None, size_split=None, test_size=0.25):
         dataset = dataframe
         if random:
             dataset = dataset.sample(frac=1)
         if size_split:
             dataset = dataset.head(size_split)
+
+        # COMBINAR DATAFRAMES
+        if combine_with_reviewed_dataset:
+            dataset = pd.concat([dataset, self.datasetReviewed])
+
         X, y = self.__preprocessing_dataframe__(dataset)
         X_train, X_tests, y_train, y_tests = train_test_split(X, y, test_size=test_size)
         X_train_json = self.__preprocessing_X__(X_train)
@@ -197,57 +224,67 @@ class ADSModel:
         base64_image = base64.b64encode(img_bytes.getvalue()).decode('utf-8')
         return base64_image
 
-    def retrain_model(self, retraining=True, retrainWeights=True, tunning=False, model_by_best_epoch=False, random=None,
-                      size_split=None, test_size=0.25, epochs=10, validation_split=0.2):
-        X_train, X_tests, y_train, y_tests = self.__get_train_test_split__(self.dataset, random, size_split, test_size)
-
-        model = self.model
+    def __get_model_by_config__(self, retraining, retrainWeights, tunning, X_train, y_train, epochs, validation_split, tuner=None):
         metric_objective = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_METRIC_OBJECTIVE", "f1_score")
+        model = None
 
         if not retraining:
             model = self.create_model_layers(self.sizeImage, 3)
             optimizer = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_OPTIMIZER", "adam")
             metrics = ["accuracy", f1_score, recall, precision]
             self.compile_model(model, optimizer, metrics)
+
         else:
             if tunning:
-                tuner = kt.Hyperband(self.build_model_tunning,
-                                     objective=kt.Objective("val_" + metric_objective, direction="max"),
-                                     max_epochs=epochs,
-                                     factor=3,
-                                     directory='models',
-                                     project_name='tunning_model')
-                stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-                tuner.search(X_train, y_train, epochs=epochs, validation_split=validation_split, callbacks=[stop_early])
-                # Get the optimal hyperparameters
-                best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-                model = tuner.hypermodel.build(best_hps)
+                if tuner:
+                    # Get the optimal hyperparameters
+                    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+                    model = tuner.hypermodel.build(best_hps)
+                else:
+                    tuner = kt.Hyperband(self.build_model_tunning,
+                                         objective=kt.Objective("val_" + metric_objective, direction="max"),
+                                         max_epochs=epochs,
+                                         factor=3,
+                                         directory='models',
+                                         project_name='tunning_model')
+                    stop_early = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
+                    tuner.search(X_train, y_train, epochs=epochs, validation_split=validation_split, callbacks=[stop_early])
+                    # Get the optimal hyperparameters
+                    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+                    model = tuner.hypermodel.build(best_hps)
+
             else:
                 best_hps = self.model.get_config()
                 if retrainWeights:
                     model = self.__load_model__()
                 else:
-                    model = keras.Model.from_config(best_hps)
+                    # model = keras.Model.from_config(best_hps)
+                    model = self.create_model_layers(self.sizeImage, 3)
+                    optimizer = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_OPTIMIZER", "adam")
+                    metrics = ["accuracy", f1_score, recall, precision]
+                    self.compile_model(model, optimizer, metrics)
 
-        history = model.fit(X_train, y_train, epochs=epochs, validation_split=0.2)
+        return model, tuner
+
+
+    def retrain_model(self, retraining=True, retrainWeights=True, tunning=False, model_by_best_epoch=False, random=None,
+                      size_split=None, test_size=0.25, epochs=10, validation_split=0.2):
+        X_train, X_tests, y_train, y_tests = self.__get_train_test_split__(self.dataset, random, size_split, test_size)
+
+        metric_objective = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_METRIC_OBJECTIVE", "f1_score")
+
+        model, tuner = self.__get_model_by_config__(retraining, retrainWeights, tunning, X_train, y_train, epochs, validation_split)
+
+        # RETRAIN
+        history = model.fit(X_train, y_train, epochs=epochs, validation_split=validation_split)
+
         if model_by_best_epoch:
             val_metric_per_epoch = history.history['val_' + metric_objective]
             best_epoch = val_metric_per_epoch.index(max(val_metric_per_epoch)) + 1
             logging.info('Best epoch: %d' % (best_epoch,))
-            if not retraining:
-                model = self.create_model_layers(self.sizeImage, 3)
-                optimizer = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_OPTIMIZER", "adam")
-                metrics = ["accuracy", f1_score, recall, precision]
-                self.compile_model(model, optimizer, metrics)
-            else:
-                if tunning:
-                    model = tuner.hypermodel.build(best_hps)
-                else:
-                    if retrainWeights:
-                        model = self.__load_model__()
-                    else:
-                        model = keras.Model.from_config(best_hps)
-            history = model.fit(X_train, y_train, epochs=best_epoch, validation_split=0.2)
+            model, tuner = self.__get_model_by_config__(retraining, retrainWeights, tunning, X_train, y_train, epochs, validation_split, tuner=tuner)
+            # RETRAIN WITH BEST EPOCH
+            history = model.fit(X_train, y_train, epochs=best_epoch, validation_split=validation_split)
 
         evaluation_dict = self.get_evaluation_dict(model, X_tests, y_tests)
         evaluation_dict["random"] = random
@@ -269,6 +306,54 @@ class ADSModel:
             self.model = model
 
         addNewRetrainingEvaluation(evaluation_dict)
+
+    def add_sample_to_dataset(self, sampleJson, reviewed=False):
+        dataset = self.dataset
+        pathDataset = self.pathDatasetCsv
+        if reviewed:
+            dataset = self.datasetReviewed
+            pathDataset = self.pathDatasetReviewedCsv
+
+        if "prediction" in sampleJson:
+            anomaly = self.is_anomaly(sampleJson["prediction"])
+            sampleJson["anomaly"] = int(anomaly)
+
+        # Eliminar claves no pertenecientes al dataset
+        for key in list(sampleJson.keys()):
+            if key not in list(dataset.columns):
+                del sampleJson[key]
+
+        # Establecemos los campos faltantes como vacio
+        for col in dataset.columns:
+            if col not in sampleJson:
+                sampleJson[col] = ''
+
+        # Añadimos la fila al DataFrame
+        dataset = dataset.append(sampleJson, ignore_index=True)
+        dataset.to_csv(pathDataset, index=False)
+
+        return sampleJson
+
+    def add_sample_to_high_anomalies_dataset(self, sampleJson):
+        if "prediction" in sampleJson:
+            anomaly = self.is_anomaly(sampleJson["prediction"])
+            sampleJson["anomaly"] = int(anomaly)
+
+        # Eliminar claves no pertenecientes al dataset
+        for key in list(sampleJson.keys()):
+            if key not in list(self.datasetHighAnomalies.columns):
+                del sampleJson[key]
+
+        # Establecemos los campos faltantes como vacio
+        for col in self.datasetHighAnomalies.columns:
+            if col not in sampleJson:
+                sampleJson[col] = ''
+
+        # Añadimos la fila al DataFrame
+        dataset = self.datasetHighAnomalies.append(sampleJson, ignore_index=True)
+        dataset.to_csv(self.pathDatasetHighAnomaliesCsv, index=False)
+
+        return sampleJson
 
     def compile_model(self, model, optimizer="adam", metrics=["accuracy"], tunning=False, hp=None):
         if tunning:

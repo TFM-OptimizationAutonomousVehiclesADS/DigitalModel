@@ -125,10 +125,16 @@ async def listen_sample(info: Request):
 @app.post("/predict_single")
 async def predict_single(info: Request):
     sampleJson = await info.json()
-    logging.info(sampleJson)
     adsModel = ADSModel()
     prediction = adsModel.predict_sample(sampleJson)
     sampleJson["prediction"] = prediction
+    return {"sample": sampleJson}
+
+@app.post("/add_sample_dataset_reviewed")
+async def add_sample_dataset_reviewed(info: Request):
+    sampleJson = await info.json()
+    adsModel = ADSModel()
+    sampleJson = adsModel.add_sample_to_dataset(sampleJson, reviewed=True)
     return {"sample": sampleJson}
 
 @app.post("/predict_multiple")

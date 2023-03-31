@@ -47,6 +47,8 @@ setModelConfig({
 
 setDatasetsPath({
   "pathDatasetCsv": rootPath + "/datasets/dataset_all_no_missclassification.csv",
+  "pathDatasetReviewedCsv": rootPath + "/datasets/dataset_reviewed.csv",
+  "pathDatasetHighAnomaliesCsv": rootPath + "/datasets/dataset_high_anomalies.csv",
   "pathResizedImage": rootPath + "/datasets/resized_images",
   "pathObjectsImage": rootPath + "/datasets/objects_images",
   "pathSurfacesImage": rootPath + "/datasets/surfaces_images"

@@ -93,6 +93,11 @@ class ADSModel:
             object_image = Image.open(io.BytesIO(base64.b64decode(sample["objectImage"].encode("utf-8"))))
             surface_image = Image.open(io.BytesIO(base64.b64decode(sample["surfaceImage"].encode("utf-8"))))
 
+        # Convertir la imagen a RGB
+        resized_image = resized_image.convert('RGB')
+        object_image = object_image.convert('RGB')
+        surface_image = surface_image.convert('RGB')
+
         im1 = np.array(
             resize_image(resized_image, size_image=self.sizeImage)) / 255.0
         im2 = np.array(

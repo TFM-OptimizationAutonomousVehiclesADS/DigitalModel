@@ -164,7 +164,7 @@ class ADSModel:
     def is_sure_normal_sample(self, y_pred):
         return y_pred <= 0.1
 
-    def __get_train_test_split__(self, dataframe, combine_with_reviewed_dataset=True, random=None, size_split=None, test_size=0.25):
+    def __get_train_test_split__(self, dataframe, random=None, size_split=None, test_size=0.25, combine_with_reviewed_dataset=True):
         dataset = dataframe
         if random:
             dataset = dataset.sample(frac=1)
@@ -176,7 +176,11 @@ class ADSModel:
             dataset = pd.concat([dataset, self.datasetReviewed])
 
         X, y = self.__preprocessing_dataframe__(dataset)
-        X_train, X_tests, y_train, y_tests = train_test_split(X, y, test_size=test_size)
+        if test_size <= 0 or test_size >= 1:
+            X_train, y_train = [X, y]
+            X_tests, y_tests = [X, y]
+        else:
+            X_train, X_tests, y_train, y_tests = train_test_split(X, y, test_size=test_size)
         X_train_json = self.__preprocessing_X__(X_train)
         X_tests_json = self.__preprocessing_X__(X_tests)
         y_train = self.__preprocessing_y__(y_train)
@@ -185,7 +189,7 @@ class ADSModel:
 
     def evaluate_dataframe(self, dataframe):
         X_train, X_tests, y_train, y_tests = self.__get_train_test_split__(dataframe, random=None, size_split=None, test_size=0.0)
-        return get_evaluation_dict(self.model, X_train, y_train)
+        return self.get_evaluation_dict(self.model, X_train, y_train)
 
     def get_evaluation_dict(self, model, X_tests, y_tests):
         evaulation_dict = get_evaluation_model(model, X_tests, y_tests)

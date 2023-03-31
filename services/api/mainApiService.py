@@ -12,6 +12,7 @@ import datetime
 from ADS.ADSModel import ADSModel
 import json
 import os
+import pandas as pd
 
 app = FastAPI(middleware=[
     Middleware(CORSMiddleware, allow_origins=["*"])
@@ -140,7 +141,8 @@ async def add_sample_dataset_reviewed(info: Request):
 @app.post("/predict_multiple")
 async def predict_multiple(info: Request):
     df_dict = await info.json()
-    df = pd.read_json(df_dict)
+    # df = pd.read_json(df_dict)
+    df = pd.DataFrame(df_dict)
     adsModel = ADSModel()
     samplesJson = []
     for index, row in df.iterrows():

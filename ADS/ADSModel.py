@@ -184,8 +184,8 @@ class ADSModel:
         return X_train_json, X_tests_json, y_train, y_tests
 
     def evaluate_dataframe(self, dataframe):
-        X_train, X_tests, y_train, y_tests = self.__get_train_test_split__(dataframe, random=None, size_split=None, test_size=1.0)
-        return get_evaluation_dict(self.model, X_tests, y_tests)
+        X_train, X_tests, y_train, y_tests = self.__get_train_test_split__(dataframe, random=None, size_split=None, test_size=0.0)
+        return get_evaluation_dict(self.model, X_train, y_train)
 
     def get_evaluation_dict(self, model, X_tests, y_tests):
         evaulation_dict = get_evaluation_model(model, X_tests, y_tests)

@@ -88,7 +88,6 @@ def true_positives(y_true, y_pred, threshold=0.5):
     true_positives = K.sum(K.cast(y_true * y_pred, K.floatx()))
     return true_positives
 
-
 def true_negatives(y_true, y_pred, threshold=0.5):
     y_pred = K.cast(K.greater_equal(y_pred, threshold), K.floatx()) # se aplica el umbral
     y_true = K.cast(y_true, K.floatx())
@@ -104,55 +103,55 @@ def false_positives(y_true, y_pred, threshold=0.5):
 def false_negatives(y_true, y_pred, threshold=0.5):
     y_pred = K.cast(K.greater_equal(y_pred, threshold), K.floatx()) # se aplica el umbral
     y_true = K.cast(y_true, K.floatx())
-    false_negatives = K.sum(K.cast(K.less(y_true, y_pred), K.floatx()))
+    false_negatives = K.sum(K.cast(y_true * (1 - y_pred), K.floatx()))
     return false_negatives
 
-def tp(threshold=0.5):
-    def _tp(y_true, y_pred):
+def tp_threshold(threshold=0.5):
+    def tp(y_true, y_pred):
         return true_positives(y_true, y_pred, threshold)
-    return _tp
+    return tp
 
-def tn(threshold=0.5):
-    def _tn(y_true, y_pred):
+def tn_threshold(threshold=0.5):
+    def tn(y_true, y_pred):
         return true_negatives(y_true, y_pred, threshold)
-    return _tn
+    return tn
 
-def fp(threshold=0.5):
-    def _fp(y_true, y_pred):
+def fp_threshold(threshold=0.5):
+    def fp(y_true, y_pred):
         return false_positives(y_true, y_pred, threshold)
-    return _fp
+    return fp
 
-def fn(threshold=0.5):
-    def _fn(y_true, y_pred):
+def fn_threshold(threshold=0.5):
+    def fn(y_true, y_pred):
         return false_negatives(y_true, y_pred, threshold)
-    return _fn
+    return fn
 
-def recall(threshold=0.5):
-    def _recall(y_true, y_pred):
+def recall_threshold(threshold=0.5):
+    def recall(y_true, y_pred):
         tp = true_positives(y_true, y_pred, threshold)
         fn = false_negatives(y_true, y_pred, threshold)
         recall = tp / (tp + fn + K.epsilon())
         return recall
-    return _recall
+    return recall
 
-def precision(threshold=0.5):
-    def _precision(y_true, y_pred):
+def precision_threshold(threshold=0.5):
+    def precision(y_true, y_pred):
         tp = true_positives(y_true, y_pred, threshold)
         fp = false_positives(y_true, y_pred, threshold)
         precision = tp / (tp + fp + K.epsilon())
         return precision
-    return _precision
+    return precision
 
 
-def f1_score(threshold=0.5):
-    def _f1_score(y_true, y_pred):
+def f1_score_threshold(threshold=0.5):
+    def f1_score(y_true, y_pred):
         tp = true_positives(y_true, y_pred, threshold)
         fp = false_positives(y_true, y_pred, threshold)
         fn = false_negatives(y_true, y_pred, threshold)
         precision_res = tp / (tp + fp + K.epsilon())
         recall_res = tp / (tp + fn + K.epsilon())
         return 2 * ((precision_res * recall_res) / (precision_res + recall_res + K.epsilon()))
-    return _f1_score
+    return f1_score
 
 def accuracy(threshold=0.5):
     def _accuracy(y_true, y_pred):

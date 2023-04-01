@@ -128,7 +128,9 @@ class ADSModel:
         features_array = [camera, speed, rotation]
 
         X.append([im1, im2, im3, features_array])
-        y.append([sample["anomaly"]])
+
+        if "anomaly" in sample:
+            y.append([sample["anomaly"]])
 
         return X, y
 
@@ -155,6 +157,9 @@ class ADSModel:
         if float(yhat) > self.thresholdHigh:
             sample["prediction"] = float(yhat)
             self.add_sample_to_high_anomalies_dataset(sample)
+
+        if "anomaly" in sample and int(sample["anomaly"] == 1):
+            self.add_sample_to_dataset(sample, reviewed=True)
 
         return yhat
 
@@ -321,7 +326,7 @@ class ADSModel:
             dataset = self.datasetReviewed
             pathDataset = self.pathDatasetReviewedCsv
 
-        if "prediction" in sampleJson:
+        if "anomaly" not in sampleJson and "prediction" in sampleJson:
             anomaly = self.is_anomaly(sampleJson["prediction"])
             sampleJson["anomaly"] = int(anomaly)
 

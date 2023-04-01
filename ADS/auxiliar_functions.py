@@ -82,30 +82,87 @@ def get_evaluation_model(model, X_tests, y_tests):
     evaulation_dict = model.evaluate(X_tests, y_tests, verbose=2, return_dict=True)
     return evaulation_dict
 
-
-def recall(y_true, y_pred):
-    y_true = K.ones_like(y_true)
-    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    all_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
-
-    recall = true_positives / (all_positives + K.epsilon())
-    return recall
+def true_positives(y_true, y_pred, threshold=0.5):
+    y_pred = K.cast(K.greater_equal(y_pred, threshold), K.floatx())  # se aplica el umbral
+    y_true = K.cast(y_true, K.floatx())
+    true_positives = K.sum(K.cast(y_true * y_pred, K.floatx()))
+    return true_positives
 
 
-def precision(y_true, y_pred):
-    y_true = K.ones_like(y_true)
-    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+def true_negatives(y_true, y_pred, threshold=0.5):
+    y_pred = K.cast(K.greater_equal(y_pred, threshold), K.floatx()) # se aplica el umbral
+    y_true = K.cast(y_true, K.floatx())
+    true_negatives = K.sum(K.cast((1 - y_true) * (1 - y_pred), K.floatx()))
+    return true_negatives
 
-    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
-    precision = true_positives / (predicted_positives + K.epsilon())
-    return precision
+def false_positives(y_true, y_pred, threshold=0.5):
+    y_pred = K.cast(K.greater_equal(y_pred, threshold), K.floatx()) # se aplica el umbral
+    y_true = K.cast(y_true, K.floatx())
+    false_positives = K.sum(K.cast((1 - y_true) * y_pred, K.floatx()))
+    return false_positives
+
+def false_negatives(y_true, y_pred, threshold=0.5):
+    y_pred = K.cast(K.greater_equal(y_pred, threshold), K.floatx()) # se aplica el umbral
+    y_true = K.cast(y_true, K.floatx())
+    false_negatives = K.sum(K.cast(K.less(y_true, y_pred), K.floatx()))
+    return false_negatives
+
+def tp(threshold=0.5):
+    def _tp(y_true, y_pred):
+        return true_positives(y_true, y_pred, threshold)
+    return _tp
+
+def tn(threshold=0.5):
+    def _tn(y_true, y_pred):
+        return true_negatives(y_true, y_pred, threshold)
+    return _tn
+
+def fp(threshold=0.5):
+    def _fp(y_true, y_pred):
+        return false_positives(y_true, y_pred, threshold)
+    return _fp
+
+def fn(threshold=0.5):
+    def _fn(y_true, y_pred):
+        return false_negatives(y_true, y_pred, threshold)
+    return _fn
+
+def recall(threshold=0.5):
+    def _recall(y_true, y_pred):
+        tp = true_positives(y_true, y_pred, threshold)
+        fn = false_negatives(y_true, y_pred, threshold)
+        recall = tp / (tp + fn + K.epsilon())
+        return recall
+    return _recall
+
+def precision(threshold=0.5):
+    def _precision(y_true, y_pred):
+        tp = true_positives(y_true, y_pred, threshold)
+        fp = false_positives(y_true, y_pred, threshold)
+        precision = tp / (tp + fp + K.epsilon())
+        return precision
+    return _precision
 
 
-def f1_score(y_true, y_pred):
-    precision_res = precision(y_true, y_pred)
-    recall_res = recall(y_true, y_pred)
-    return 2 * ((precision_res * recall_res) / (precision_res + recall_res + K.epsilon()))
+def f1_score(threshold=0.5):
+    def _f1_score(y_true, y_pred):
+        tp = true_positives(y_true, y_pred, threshold)
+        fp = false_positives(y_true, y_pred, threshold)
+        fn = false_negatives(y_true, y_pred, threshold)
+        precision_res = tp / (tp + fp + K.epsilon())
+        recall_res = tp / (tp + fn + K.epsilon())
+        return 2 * ((precision_res * recall_res) / (precision_res + recall_res + K.epsilon()))
+    return _f1_score
 
+def accuracy(threshold=0.5):
+    def _accuracy(y_true, y_pred):
+        tp = true_positives(y_true, y_pred, threshold)
+        tn = true_negatives(y_true, y_pred, threshold)
+        fp = false_positives(y_true, y_pred, threshold)
+        fn = false_negatives(y_true, y_pred, threshold)
+        accuracy = (tp + tn) / (tp + tn + fp + fn)
+        return accuracy
+    return _accuracy
 
 def save_model(model, fullpath):
     model.save(fullpath)

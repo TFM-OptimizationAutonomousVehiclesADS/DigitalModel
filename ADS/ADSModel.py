@@ -235,7 +235,8 @@ class ADSModel:
         if not retraining:
             model = self.create_model_layers(self.sizeImage, 3)
             optimizer = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_OPTIMIZER", "adam")
-            metrics = ["accuracy", f1_score, recall, precision]
+            threshold = self.threshold
+            metrics = [accuracy(threshold), f1_score(threshold), recall(threshold), precision(threshold), tp(threshold), tn(threshold), fp(threshold), fn(threshold)]
             self.compile_model(model, optimizer, metrics)
 
         else:
@@ -265,7 +266,9 @@ class ADSModel:
                     # model = keras.Model.from_config(best_hps)
                     model = self.create_model_layers(self.sizeImage, 3)
                     optimizer = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_OPTIMIZER", "adam")
-                    metrics = ["accuracy", f1_score, recall, precision]
+                    threshold = self.threshold
+                    metrics = [accuracy(threshold), f1_score(threshold), recall(threshold), precision(threshold),
+                               tp(threshold), tn(threshold), fp(threshold), fn(threshold)]
                     self.compile_model(model, optimizer, metrics)
 
         return model, tuner
@@ -542,6 +545,8 @@ class ADSModel:
     def build_model_tunning(self, hp):
         model = self.create_model_layers_tunning(self.sizeImage, 3, hp)
         optimizer = getModelCompilerOptimizer()
-        metrics = ["accuracy", f1_score, recall, precision]
+        threshold = self.threshold
+        metrics = [accuracy(threshold), f1_score(threshold), recall(threshold), precision(threshold), tp(threshold),
+                   tn(threshold), fp(threshold), fn(threshold)]
         self.compile_model(model, optimizer, metrics, tunning=True, hp=hp)
         return model

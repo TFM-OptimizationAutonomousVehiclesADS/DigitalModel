@@ -23,12 +23,12 @@ class ADSModel:
         self.resizedImagesPath = getPathResizedImage()
         self.objectsImagesPath = getPathObjectsImage()
         self.surfacesImagesPath = getPathSurfacesImage()
-        self.model = self.__load_model__()
+        self.threshold = float(os.environ.get('DIGITAL_MODEL_THRESHOLD_ANOMALY', 0.5))
+        self.thresholdHigh = float(os.environ.get('DIGITAL_MODEL_HIGH_THRESHOLD_ANOMALY', 0.85))
         widthImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_WIDTH', 80))
         heightImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_HEIGHT', 45))
         self.sizeImage = [heightImage, widthImage]
-        self.threshold = float(os.environ.get('DIGITAL_MODEL_THRESHOLD_ANOMALY', 0.5))
-        self.thresholdHigh = float(os.environ.get('DIGITAL_MODEL_HIGH_THRESHOLD_ANOMALY', 0.85))
+        self.model = self.__load_model__()
         self.pathDatasetCsv = getPathDatasetCsv()
         self.pathDatasetReviewedCsv = getPathDatasetReviewedCsv()
         self.pathDatasetHighAnomaliesCsv = getPathDatasetHighAnomaliesCsv()
@@ -57,7 +57,10 @@ class ADSModel:
 
     def __load_model__(self):
         if os.path.exists(self.modelPath):
-            custom_objects = {"recall": recall, "precision": precision, "f1_score": f1_score}
+            custom_objects = {"recall": recall_threshold(self.threshold), "precision": precision_threshold(self.threshold),
+                              "f1_score": f1_score_threshold(self.threshold), "tp": tp_threshold(self.threshold),
+                              "tn": tn_threshold(self.threshold),
+                              "fp": fp_threshold(self.threshold), "fn": fn_threshold(self.threshold)}
             return models.load_model(self.modelPath, custom_objects=custom_objects)
         return None
 

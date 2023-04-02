@@ -3,6 +3,7 @@ from PIL import Image
 from tensorflow.keras import datasets, layers, models
 from tensorflow.keras import backend as K
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import precision_score, recall_score, f1_score
 import tensorflow as tf
 # import keras.backend as K
 import base64
@@ -87,79 +88,97 @@ def true_positives(y_true, y_pred, threshold=0.5):
     y_pred_binary = tf.cast(y_pred >= threshold, dtype=tf.int32)  # se binariza la predicción
     y_true_binary = tf.cast(y_true, dtype=tf.int32)  # se binariza la etiqueta verdadera
     true_positives = tf.reduce_sum(y_true_binary * y_pred_binary)  # se calculan los verdaderos positivos
-    return true_positives
+    return true_positives.numpy()
 
 def false_positives(y_true, y_pred, threshold=0.5):
     y_pred_binary = tf.cast(y_pred >= threshold, dtype=tf.int32)  # se binariza la predicción
     y_true_binary = tf.cast(y_true, dtype=tf.int32)  # se binariza la etiqueta verdadera
     false_positives = tf.reduce_sum((1 - y_true_binary) * y_pred_binary)  # se calculan los falsos positivos
-    return false_positives
+    return false_positives.numpy()
 
 def true_negatives(y_true, y_pred, threshold=0.5):
     y_pred_binary = tf.cast(y_pred >= threshold, dtype=tf.int32)  # se binariza la predicción
     y_true_binary = tf.cast(y_true, dtype=tf.int32)  # se binariza la etiqueta verdadera
     true_negatives = tf.reduce_sum((1 - y_true_binary) * (1 - y_pred_binary))  # se calculan los verdaderos negativos
-    return true_negatives
+    return true_negatives.numpy()
 
 def false_negatives(y_true, y_pred, threshold=0.5):
     y_pred_binary = tf.cast(y_pred >= threshold, dtype=tf.int32)  # se binariza la predicción
     y_true_binary = tf.cast(y_true, dtype=tf.int32)  # se binariza la etiqueta verdadera
     false_negatives = tf.reduce_sum(y_true_binary * (1 - y_pred_binary))  # se calculan los falsos negativos
-    return false_negatives
+    return false_negatives.numpy()
 
 def tp_threshold(threshold=0.5):
-    def tp(y_true, y_pred):
-        return true_positives(y_true, y_pred, threshold)
+    def threshold_fn(y_true, y_pred):
+        y_pred = tf.where(y_pred >= threshold, 1, 0)
+        return y_true, y_pred
+
+    tp = tf.keras.metrics.TruePositives(name="tp", thresholds=threshold_fn)
     return tp
 
 def tn_threshold(threshold=0.5):
-    def tn(y_true, y_pred):
-        return true_negatives(y_true, y_pred, threshold)
+    def threshold_fn(y_true, y_pred):
+        y_pred = tf.where(y_pred >= threshold, 1, 0)
+        return y_true, y_pred
+
+    tn = tf.keras.metrics.TrueNegatives(name="tn", thresholds=threshold_fn)
     return tn
 
 def fp_threshold(threshold=0.5):
-    def fp(y_true, y_pred):
-        return false_positives(y_true, y_pred, threshold)
+    def threshold_fn(y_true, y_pred):
+        y_pred = tf.where(y_pred >= threshold, 1, 0)
+        return y_true, y_pred
+
+    fp = tf.keras.metrics.FalsePositives(name="fp", thresholds=threshold_fn)
     return fp
 
 def fn_threshold(threshold=0.5):
-    def fn(y_true, y_pred):
-        return false_negatives(y_true, y_pred, threshold)
+    def threshold_fn(y_true, y_pred):
+        y_pred = tf.where(y_pred >= threshold, 1, 0)
+        return y_true, y_pred
+
+    fn = tf.keras.metrics.FalseNegatives(name="fn", thresholds=threshold_fn)
     return fn
 
 def recall_threshold(threshold=0.5):
+
+    def threshold_fn(y_true, y_pred):
+        y_pred = tf.where(y_pred >= threshold, 1, 0)
+        return y_true, y_pred
+
     def recall(y_true, y_pred):
-        tp = tf.cast(true_positives(y_true, y_pred, threshold), dtype=tf.float32)
-        fn = tf.cast(false_negatives(y_true, y_pred, threshold), dtype=tf.float32)
-        recall = tp / (tp + fn + K.epsilon())
-        return recall
+        y_true, y_pred = threshold_fn(y_true, y_pred)
+        return recall_score(y_true.numpy(), y_pred.numpy())
+
     return recall
 
 def precision_threshold(threshold=0.5):
+    def threshold_fn(y_true, y_pred):
+        y_pred = tf.where(y_pred >= threshold, 1, 0)
+        return y_true, y_pred
+
     def precision(y_true, y_pred):
-        tp = tf.cast(true_positives(y_true, y_pred, threshold), dtype=tf.float32)
-        fp = tf.cast(false_positives(y_true, y_pred, threshold), dtype=tf.float32)
-        precision = tp / (tp + fp + K.epsilon())
-        return precision
+        y_true, y_pred = threshold_fn(y_true, y_pred)
+        return precision_score(y_true.numpy(), y_pred.numpy())
     return precision
 
 
 def f1_score_threshold(threshold=0.5):
+    def threshold_fn(y_true, y_pred):
+        y_pred = tf.where(y_pred >= threshold, 1, 0)
+        return y_true, y_pred
+
     def f1_score(y_true, y_pred):
-        tp = tf.cast(true_positives(y_true, y_pred, threshold), dtype=tf.float32)
-        fp = tf.cast(false_positives(y_true, y_pred, threshold), dtype=tf.float32)
-        fn = tf.cast(false_negatives(y_true, y_pred, threshold), dtype=tf.float32)
-        precision_res = tp / (tp + fp + K.epsilon())
-        recall_res = tp / (tp + fn + K.epsilon())
-        return 2 * ((precision_res * recall_res) / (precision_res + recall_res + K.epsilon()))
+        y_true, y_pred = threshold_fn(y_true, y_pred)
+        return f1_score(y_true.numpy(), y_pred.numpy())
     return f1_score
 
 def accuracy_threshold(threshold=0.5):
     def accuracy(y_true, y_pred):
-        tp = true_positives(y_true, y_pred, threshold)
-        tn = true_negatives(y_true, y_pred, threshold)
-        fp = false_positives(y_true, y_pred, threshold)
-        fn = false_negatives(y_true, y_pred, threshold)
+        tp = tf.cast(true_positives(y_true, y_pred, threshold), dtype=tf.float32)
+        tn = tf.cast(true_negatives(y_true, y_pred, threshold), dtype=tf.float32)
+        fp = tf.cast(false_positives(y_true, y_pred, threshold), dtype=tf.float32)
+        fn = tf.cast(false_negatives(y_true, y_pred, threshold), dtype=tf.float32)
         accuracy = (tp + tn) / (tp + tn + fp + fn)
         return accuracy
     return accuracy

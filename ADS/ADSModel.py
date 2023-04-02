@@ -35,6 +35,11 @@ class ADSModel:
         self.dataset = pd.read_csv(self.pathDatasetCsv)
         self.__load_dataset_reviewed__()
         self.__load_dataset_high_anomalies__()
+        self.metrics = [accuracy_threshold(self.threshold), f1_score_threshold(self.threshold),
+                        recall_threshold(self.threshold), precision_threshold(self.threshold),
+                        tp_threshold(self.threshold), tn_threshold(self.threshold),
+                        fp_threshold(self.threshold), fn_threshold(self.threshold)]
+
 
     def __load_dataset_reviewed__(self):
         if os.path.exists(self.pathDatasetReviewedCsv):
@@ -241,7 +246,7 @@ class ADSModel:
             model = self.create_model_layers(self.sizeImage, 3)
             optimizer = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_OPTIMIZER", "adam")
             threshold = self.threshold
-            metrics = [accuracy(threshold), f1_score(threshold), recall(threshold), precision(threshold), tp(threshold), tn(threshold), fp(threshold), fn(threshold)]
+            metrics = self.metrics
             self.compile_model(model, optimizer, metrics)
 
         else:
@@ -272,8 +277,7 @@ class ADSModel:
                     model = self.create_model_layers(self.sizeImage, 3)
                     optimizer = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_OPTIMIZER", "adam")
                     threshold = self.threshold
-                    metrics = [accuracy(threshold), f1_score(threshold), recall(threshold), precision(threshold),
-                               tp(threshold), tn(threshold), fp(threshold), fn(threshold)]
+                    metrics = self.metrics
                     self.compile_model(model, optimizer, metrics)
 
         return model, tuner
@@ -551,7 +555,6 @@ class ADSModel:
         model = self.create_model_layers_tunning(self.sizeImage, 3, hp)
         optimizer = getModelCompilerOptimizer()
         threshold = self.threshold
-        metrics = [accuracy(threshold), f1_score(threshold), recall(threshold), precision(threshold), tp(threshold),
-                   tn(threshold), fp(threshold), fn(threshold)]
+        metrics = self.metrics
         self.compile_model(model, optimizer, metrics, tunning=True, hp=hp)
         return model

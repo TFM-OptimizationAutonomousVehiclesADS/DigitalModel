@@ -153,15 +153,15 @@ def f1_score_threshold(threshold=0.5):
         return 2 * ((precision_res * recall_res) / (precision_res + recall_res + K.epsilon()))
     return f1_score
 
-def accuracy(threshold=0.5):
-    def _accuracy(y_true, y_pred):
+def accuracy_threshold(threshold=0.5):
+    def accuracy(y_true, y_pred):
         tp = true_positives(y_true, y_pred, threshold)
         tn = true_negatives(y_true, y_pred, threshold)
         fp = false_positives(y_true, y_pred, threshold)
         fn = false_negatives(y_true, y_pred, threshold)
         accuracy = (tp + tn) / (tp + tn + fp + fn)
         return accuracy
-    return _accuracy
+    return accuracy
 
 def save_model(model, fullpath):
     model.save(fullpath)

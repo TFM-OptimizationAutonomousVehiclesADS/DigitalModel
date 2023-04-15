@@ -34,7 +34,7 @@ if __name__ == "__main__":
             if is_predicted_anomaly:
                 logging.info("ES UNA ANOMALIA, GUARDANDO EN BASE DE DATOS")
                 addAnomalySample(sample)
-            addPredictionLogSample(sample)
+            # addPredictionLogSample(sample)
 
         except Exception as e:
             logging.exception("Error en ADS: " + str(e))

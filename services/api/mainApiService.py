@@ -38,10 +38,10 @@ async def last_anomalies_by_dates(fecha_inicio: str, fecha_fin: str):
     # Convertir las cadenas de fecha a objetos de fecha de Python
     fecha_inicio_obj = None
     if fecha_inicio:
-        fecha_inicio_obj = datetime.datetime.strptime(fecha_inicio, "%d/%m/%YT%H:%M")
+        fecha_inicio_obj = datetime.datetime.strptime(fecha_inicio, "%d-%m-%YT%H:%M")
     fecha_fin_obj = None
     if fecha_fin:
-        fecha_fin_obj = datetime.datetime.strptime(fecha_fin, "%d/%m/%YT%H:%M")
+        fecha_fin_obj = datetime.datetime.strptime(fecha_fin, "%d-%m-%YT%H:%M")
 
     result = getLastAnomaliesSamples(fecha_inicio_obj, fecha_fin_obj)
     logging.info(result)
@@ -64,10 +64,10 @@ async def logs_samples_by_dates(fecha_inicio: str, fecha_fin: str):
     # Convertir las cadenas de fecha a objetos de fecha de Python
     fecha_inicio_obj = None
     if fecha_inicio:
-        fecha_inicio_obj = datetime.datetime.strptime(fecha_inicio, "%d/%m/%YT%H:%M")
+        fecha_inicio_obj = datetime.datetime.strptime(fecha_inicio, "%d-%m-%YT%H:%M")
     fecha_fin_obj = None
     if fecha_fin:
-        fecha_fin_obj = datetime.datetime.strptime(fecha_fin, "%d/%m/%YT%H:%M")
+        fecha_fin_obj = datetime.datetime.strptime(fecha_fin, "%d-%m-%YT%H:%M")
 
     result = getLastLogsSample(fecha_inicio_obj, fecha_fin_obj)
     logging.info(result)
@@ -90,10 +90,10 @@ async def logs_retraining_evaluation(fecha_inicio: str, fecha_fin: str):
     # Convertir las cadenas de fecha a objetos de fecha de Python
     fecha_inicio_obj = None
     if fecha_inicio:
-        fecha_inicio_obj = datetime.datetime.strptime(fecha_inicio, "%d/%m/%YT%H:%M")
+        fecha_inicio_obj = datetime.datetime.strptime(fecha_inicio, "%d-%m-%YT%H:%M").timestamp()
     fecha_fin_obj = None
     if fecha_fin:
-        fecha_fin_obj = datetime.datetime.strptime(fecha_fin, "%d/%m/%YT%H:%M")
+        fecha_fin_obj = datetime.datetime.strptime(fecha_fin, "%d-%m-%YT%H:%M").timestamp()
 
     result = getLastRetrainingEvaluations(fecha_inicio_obj, fecha_fin_obj)
     logging.info(result)

@@ -217,8 +217,8 @@ class ADSModel:
 
     def is_better_model(self, evaluation_dict, metric="f1_score"):
         actual_evaluation_dict = self.get_actual_evaluation_model()
-        metric_obtained = int(evaluation_dict.get(metric, 0))
-        metric_actual = int(actual_evaluation_dict.get(metric, 0))
+        metric_obtained = float(evaluation_dict.get(metric, 0))
+        metric_actual = float(actual_evaluation_dict.get(metric, 0))
         return metric_obtained >= metric_actual
 
     def get_actual_evaluation_model(self):

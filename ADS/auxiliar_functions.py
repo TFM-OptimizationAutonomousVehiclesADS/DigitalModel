@@ -171,21 +171,22 @@ def f1_score_threshold(threshold=0.5):
 
 
 def accuracy_threshold(threshold=0.5):
-    def threshold_fn(y_true, y_pred):
-        y_pred = K.cast(K.greater_equal(y_pred, threshold), 'float32')
-        return y_true, y_pred
+    # def threshold_fn(y_true, y_pred):
+    #     y_pred = K.cast(K.greater_equal(y_pred, threshold), 'float32')
+    #     return y_true, y_pred
+    #
+    # def accuracy(y_true, y_pred):
+    #     y_true, y_pred = threshold_fn(y_true, y_pred)
+    #     true_positives = K.sum(y_true * y_pred)
+    #     false_positives = K.sum((1 - y_true) * y_pred)
+    #     false_negatives = K.sum(y_true * (1 - y_pred))
+    #     true_negatives = K.sum((1 - y_true) * (1 - y_pred))
+    #     correct_predictions = true_positives + true_negatives
+    #     total_predictions = true_positives + true_negatives + false_negatives + false_positives
+    #     accuracy = correct_predictions / (total_predictions + K.epsilon())
+    #     return accuracy
 
-    def accuracy(y_true, y_pred):
-        y_true, y_pred = threshold_fn(y_true, y_pred)
-        true_positives = K.sum(y_true * y_pred)
-        false_positives = K.sum((1 - y_true) * y_pred)
-        false_negatives = K.sum(y_true * (1 - y_pred))
-        true_negatives = K.sum((1 - y_true) * (1 - y_pred))
-        correct_predictions = true_positives + true_negatives
-        total_predictions = true_positives + true_negatives + false_negatives + false_positives
-        accuracy = correct_predictions / (total_predictions + K.epsilon())
-        return accuracy
-    return accuracy
+    return tf.keras.metrics.Accuracy(name='accuracy', dtype=None)
 
 def save_model(model, fullpath):
     model.save(fullpath)

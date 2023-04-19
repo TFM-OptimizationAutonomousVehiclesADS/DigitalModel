@@ -186,7 +186,7 @@ def accuracy_threshold(threshold=0.5):
     #     accuracy = correct_predictions / (total_predictions + K.epsilon())
     #     return accuracy
 
-    return tf.keras.metrics.Accuracy(name='accuracy', dtype=None)
+    return tf.keras.metrics.BinaryAccuracy(name='accuracy', dtype=None, threshold=threshold)
 
 def save_model(model, fullpath):
     model.save(fullpath)

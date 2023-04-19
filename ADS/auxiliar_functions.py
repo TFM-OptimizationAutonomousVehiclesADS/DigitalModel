@@ -1,9 +1,7 @@
 import numpy as np
 from PIL import Image
-from tensorflow.keras import datasets, layers, models
 from tensorflow.keras import backend as K
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 import tensorflow as tf
 # import keras.backend as K
 import base64
@@ -187,12 +185,4 @@ def accuracy_threshold(threshold=0.5):
     #     return accuracy
 
     return tf.keras.metrics.BinaryAccuracy(name='accuracy', dtype=None, threshold=threshold)
-
-def save_model(model, fullpath):
-    model.save(fullpath)
-
-
-def load_model(fullpath):
-    custom_objects = {"recall": recall, "precision": precision, "f1_score": f1_score}
-    return models.load_model(fullpath, custom_objects=custom_objects)
 

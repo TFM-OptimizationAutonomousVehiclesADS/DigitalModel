@@ -9,11 +9,11 @@ cd DigitalModel
 sudo docker build -t jesuscumpli/model-digital:<tag-version> .
 
 ## Actualizar Docker
-sudo docker logs -f --tail 200 <name-container> # Ver logs del contenedor
-sudo docker exec -it <name-container> /bin/bash # Acceder al contenedor
-sudo docker commit <name-container> jesuscumpli/model-digital:<tag-version>
-sudo docker stop <name-container>
-sudo docker rm <name-container>
+- sudo docker logs -f --tail 200 <name-container> // Ver logs del contenedor
+- sudo docker exec -it <name-container> /bin/bash // Acceder al contenedor
+- sudo docker commit <name-container> jesuscumpli/model-digital:<tag-version>
+- sudo docker stop <name-container>
+- sudo docker rm <name-container>
 
 ## Push Docker
 sudo docker image push jesuscumpli/model-digital:<tag-version>

@@ -8,7 +8,10 @@ SLEEP_TIME = 60*2
 
 if __name__ == "__main__":
     logging.info("** RETRAINING TASK: Iniciando Modelo de Detección de Anomalías....")
-    adsModel = ADSModel()
+
+    is_real_system = int(os.environ.get('IS_REAL_SYSTEM', 0))
+    if is_real_system:
+        exit(1)
 
     test_size = float(os.environ.get('DIGITAL_MODEL_RETRAINING_TEST_SIZE', 0.25))
     min_size_split = int(os.environ.get('DIGITAL_MODEL_RETRAINING_MIN_SPLIT', 2000))
@@ -19,8 +22,11 @@ if __name__ == "__main__":
     best_epoch = int(os.environ.get('DIGITAL_MODEL_RETRAINING_BEST_EPOCH', 1))
     retrain_weights = int(os.environ.get('DIGITAL_MODEL_RETRAINING_RETRAIN_WEIGHTS', 1))
     random_samples = int(os.environ.get('DIGITAL_MODEL_RETRAINING_RANDOM_SAMPLES', 1))
+    iter_retraining = 1
 
     while True:
+        adsModel = ADSModel(iter_retraining=iter_retraining)
+        iter_retraining = iter_retraining + 1
         try:
             size_split = random.randint(min_size_split, max_size_split)
             epochs = random.randint(min_epochs, max_epochs)

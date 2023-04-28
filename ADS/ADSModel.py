@@ -18,8 +18,11 @@ import random
 
 class ADSModel:
 
-    def __init__(self):
-        self.modelPath = getModelPath()
+    def __init__(self, iter_retraining=None):
+        self.modelName = os.environ.get("DIGITAL_MODEL_NAME", "model")
+        if iter_retraining:
+            self.modelName = self.modelName + "(Retraining " + str(iter_retraining) + ")"
+        self.modelPath = os.path.join(getModelPath(), "actual_model.h5")
         self.resizedImagesPath = getPathResizedImage()
         self.objectsImagesPath = getPathObjectsImage()
         self.surfacesImagesPath = getPathSurfacesImage()
@@ -215,6 +218,18 @@ class ADSModel:
         fullpath = self.modelPath
         model.save(fullpath)
 
+    def get_actual_model_json(self):
+        return self.model.to_json()
+
+    def replace_actual_model_json(self, model_json):
+        if isinstance(model_json, str):
+            model_json = json.loads(model_json)
+        model = tf.keras.models.model_from_json(model_json)
+        self.save_model(model)
+
+
+        return self.model.to_json()
+
     def is_better_model(self, evaluation_dict, metric="f1_score"):
         actual_evaluation_dict = self.get_actual_evaluation_model()
         metric_obtained = float(evaluation_dict.get(metric, 0))
@@ -385,7 +400,20 @@ class ADSModel:
                           loss=keras.losses.BinaryCrossentropy(),
                           metrics=metrics)
 
+    def create_model_by_combination_models(self, model_configs):
+        models = []
+        for model_config in model_configs:
+            model = tf.keras.models.model_from_json(json.dumps(model_config))
+            models.append(model)
+        combined_outputs = tf.keras.layers.concatenate([model.output for model in models])
+        combined_model = tf.keras.Model(inputs=[model.input for model in models], outputs=combined_outputs, name=self.modelName)
+        return combined_model
+
     def create_model_layers(self, size_image, number_features):
+        model_configs = os.environ.get('DIGITAL_MODEL_COMBINE_MODEL_CONFIGS', None)
+        if model_configs:
+            model_configs = json.loads(model_configs)
+            return self.create_model_by_combination_models(model_configs)
 
         # FEATURES LAYER
         final_layer_features = None
@@ -465,7 +493,7 @@ class ADSModel:
 
         # Model
         model = keras.Model(inputs=[input_features, input_full_images, input_objects_image, input_surfaces_images],
-                            outputs=[output_layer])
+                            outputs=[output_layer], name=self.modelName)
         model.summary()
         return model
 
@@ -550,7 +578,7 @@ class ADSModel:
 
         # Model
         model = keras.Model(inputs=[input_features, input_full_images, input_objects_image, input_surfaces_images],
-                            outputs=[output_layer])
+                            outputs=[output_layer], name=self.modelName)
         model.summary()
         return model
 

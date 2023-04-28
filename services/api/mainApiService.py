@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, File, HTTPException
+from fastapi.responses import FileResponse
 import uvicorn
 from localDatabase.collections.ApiAccessConfiguration.queries import getActualIpAndPort
 from localDatabase.collections.DetectedAnomalies.queries import getLastAnomaliesSamples, getAllAnomaliesSamples
@@ -13,6 +14,7 @@ from ADS.ADSModel import ADSModel
 import json
 import os
 import pandas as pd
+
 
 app = FastAPI(middleware=[
     Middleware(CORSMiddleware, allow_origins=["*"])
@@ -111,7 +113,6 @@ async def actual_evaluation_dict():
     else:
         return "error", 500
 
-
 @app.post("/listen_sample")
 async def listen_sample(info: Request):
     sampleJson = await info.json()
@@ -130,6 +131,8 @@ async def predict_single(info: Request):
     prediction = adsModel.predict_sample(sampleJson)
     sampleJson["prediction"] = prediction
     return {"sample": sampleJson}
+
+
 
 @app.post("/add_sample_dataset_reviewed")
 async def add_sample_dataset_reviewed(info: Request):
@@ -161,6 +164,39 @@ async def evaluate_dataframe(info: Request):
     evaluation_dict = adsModel.evaluate_dataframe(df)
 
     return {"evaluation_dict": evaluation_dict}
+
+@app.get("/actual_model_json")
+async def actual_model_json():
+    adsModel = ADSModel()
+    model_json = adsModel.get_actual_model_json()
+    if model_json:
+        return {"model_json": model_json}
+    else:
+        return "error", 500
+
+@app.get("/actual_model_file")
+async def actual_model_json():
+    adsModel = ADSModel()
+    model_path = adsModel.modelPath
+    if not os.path.exists(model_path):
+        raise HTTPException(status_code=404, detail="El modelo no se encuentra disponible.")
+    return FileResponse(model_path)
+
+@app.post("/replace_actual_model")
+async def replace_actual_model(model_bytes: bytes, info: Request):
+    adsModel = ADSModel()
+    evaluation_dict = await info.json()
+    # is_real_system = int(os.environ.get('IS_REAL_SYSTEM', 0))
+    # if not is_real_system:
+    #     raise HTTPException(status_code=403, detail="No es un sistema real")
+    try:
+        with open(adsModel.modelPath, "wb") as f:
+            f.write(model_bytes)
+        adsModel.__load_model__()
+        adsModel.save_evaluation_model(evaluation_dict)
+    except:
+        raise HTTPException(status_code=500, detail="No se pudo actualizar el modelo.")
+    return {"success": True}
 
 if __name__ == "__main__":
     try:

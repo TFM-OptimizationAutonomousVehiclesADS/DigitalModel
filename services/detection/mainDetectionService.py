@@ -8,7 +8,7 @@ import logging
 queueSamples = QueueSamples()
 
 if __name__ == "__main__":
-    adsModel = ADSModel()
+    # adsModel = ADSModel()
     while True:
         try:
             logging.info("WAITING NEXT SAMPLE...")
@@ -16,6 +16,8 @@ if __name__ == "__main__":
             sample = queueSamples.waitSampleFromQueue()
             logging.info("Next sample:")
             logging.info(sample)
+
+            adsModel = ADSModel()
 
             y = sample["anomaly"]
             y_pred = adsModel.predict_sample(sample)

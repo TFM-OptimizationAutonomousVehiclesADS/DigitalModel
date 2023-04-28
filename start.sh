@@ -17,6 +17,10 @@ sleep 5
 
 python3 /app/services/detection/mainDetectionService.py > /proc/1/fd/1 2>&1 &
 python3 /app/services/simulator/mainRandomSamplesGeneratorService.py > /proc/1/fd/1 2>&1 &
-python3 /app/services/retraining/mainRetrainingService.py > /proc/1/fd/1 2>&1 &
+if [ -n "${IS_REAL_SYSTEM+x}" ] && [ "$IS_REAL_SYSTEM" = "1" ]; then
+    echo "IS_REAL_SYSTEM is set to 1. Skipping mainRetrainingService.py."
+else
+    python3 /app/services/retraining/mainRetrainingService.py > /proc/1/fd/1 2>&1 &
+fi
 
 tail -f /dev/null

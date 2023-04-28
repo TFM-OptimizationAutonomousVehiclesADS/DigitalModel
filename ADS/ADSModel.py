@@ -406,7 +406,10 @@ class ADSModel:
             model = tf.keras.models.model_from_json(json.dumps(model_config))
             models.append(model)
         combined_outputs = tf.keras.layers.concatenate([model.output for model in models])
-        combined_model = tf.keras.Model(inputs=[model.input for model in models], outputs=combined_outputs, name=self.modelName)
+        # Capa final
+        x = tf.keras.layers.Dense(32, activation='relu')(combined_outputs)
+        output = tf.keras.layers.Dense(1, activation='sigmoid')(x)
+        combined_model = tf.keras.Model(inputs=[model.input for model in models], outputs=output, name=self.modelName)
         return combined_model
 
     def create_model_layers(self, size_image, number_features):

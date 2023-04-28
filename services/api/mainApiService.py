@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, File, HTTPException
+from fastapi import FastAPI, Request, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 import uvicorn
 from localDatabase.collections.ApiAccessConfiguration.queries import getActualIpAndPort
@@ -183,9 +183,11 @@ async def actual_model_json():
     return FileResponse(model_path)
 
 @app.post("/replace_actual_model")
-async def replace_actual_model(model_bytes: bytes, info: Request):
+async def replace_actual_model(model_bytes: UploadFile, info: Request):
+    info_json = await info.form()
+    model_bytes = await model_bytes.read()
+    evaluation_dict = json.loads(info_json["evaluation_dict"])
     adsModel = ADSModel()
-    evaluation_dict = await info.json()
     # is_real_system = int(os.environ.get('IS_REAL_SYSTEM', 0))
     # if not is_real_system:
     #     raise HTTPException(status_code=403, detail="No es un sistema real")

@@ -4,7 +4,8 @@ import time
 import random
 import os
 
-SLEEP_TIME = 60*2
+SLEEP_TIME = 60*5
+SLEEP_TIME_MAX = 60*15
 
 if __name__ == "__main__":
     logging.info("** RETRAINING TASK: Iniciando Modelo de Detección de Anomalías....")
@@ -38,4 +39,4 @@ if __name__ == "__main__":
         except Exception as e:
             logging.exception("Error en ADS: " + str(e))
 
-        time.sleep(SLEEP_TIME)
+        time.sleep(random.randint(SLEEP_TIME, SLEEP_TIME_MAX))

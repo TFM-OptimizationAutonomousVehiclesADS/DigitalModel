@@ -7,7 +7,7 @@ import logging
 
 # export PYTHONPATH=/mnt/d/Escritorio2.0/UMA/MasterInformaticaUMA/TFM/OptimizationAutonomousVehiclesADS/DigitalModel
 
-SLEEP_TIME = 60
+SLEEP_TIME = 120
 
 if __name__ == "__main__":
     while True:

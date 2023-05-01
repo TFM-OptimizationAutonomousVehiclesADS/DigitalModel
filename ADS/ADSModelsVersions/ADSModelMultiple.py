@@ -193,7 +193,7 @@ class ADSModelMultiple(ADSModelAbstract):
                 threshold = self.threshold
                 metrics = self.metrics
                 self.compile_model(model, optimizer, metrics)
-
+        print(model)
         return model, tuner
 
     def compile_model(self, model, optimizer="adam", metrics=["accuracy"], tunning=False, hp=None):

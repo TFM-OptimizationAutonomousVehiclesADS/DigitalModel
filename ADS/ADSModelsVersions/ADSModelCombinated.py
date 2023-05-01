@@ -127,11 +127,14 @@ class ADSModelCombinated(ADSModelAbstract):
             index_model += 1
 
         # OUTPUT LAYER
+        inputs = []
+        for model in models:
+            inputs_model = model.input
+            inputs.extend(inputs_model)
         combined_outputs = tf.keras.layers.concatenate([model.output for model in models])
         output_layer = tf.keras.layers.Dense(1, activation="sigmoid", name="output")(combined_outputs)
 
-        print([model.input for model in models])
-        model = tf.keras.Model(inputs=[model.input for model in models], outputs=output_layer, name=self.modelName)
+        model = tf.keras.Model(inputs=inputs, outputs=output_layer, name=self.modelName)
         model.summary()
         return model
 
@@ -183,7 +186,7 @@ class ADSModelCombinated(ADSModelAbstract):
         return best_model_found
 
     def __preprocessing_X__(self, X):
-        X_json = []
+        X_json = {}
         index_model = 0
         print(len(X))
         for model_config in self.models_configs:
@@ -193,17 +196,15 @@ class ADSModelCombinated(ADSModelAbstract):
             X_features = np.array(list(list(zip(*X[index_model]))[3]))
 
             model = tf.keras.models.model_from_json(json.dumps(model_config))
-            X_inputs = {}
             for layer in model.layers:
                 if "features" in layer.name:
-                    X_inputs["features_" + str(index_model)] = X_features
+                    X_json["features_" + str(index_model)] = X_features
                 elif "full_images" in layer.name:
-                    X_inputs["full_images_" + str(index_model)] = X_full_images
+                    X_json["full_images_" + str(index_model)] = X_full_images
                 elif "objects_images" in layer.name:
-                    X_inputs["objects_images_" + str(index_model)] = X_objects_images
+                    X_json["objects_images_" + str(index_model)] = X_objects_images
                 elif "surfaces_images" in layer.name:
-                    X_inputs["surfaces_images_" + str(index_model)] = X_surfaces_images
-            X_json.append(X_inputs)
+                    X_json["surfaces_images_" + str(index_model)] = X_surfaces_images
             index_model += 1
 
         return X_json

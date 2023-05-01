@@ -59,6 +59,8 @@ class ADSModelCombinated(ADSModelAbstract):
 
     def save_model(self, model):
         fullpath = self.modelPath
+        if os.path.exists(fullpath):
+            os.remove(fullpath)
         model.save(fullpath)
 
     def get_actual_model_json(self):

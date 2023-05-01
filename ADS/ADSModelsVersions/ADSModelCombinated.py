@@ -186,7 +186,7 @@ class ADSModelCombinated(ADSModelAbstract):
         X_json = {}
         for model_config in self.models_configs:
             X_json["full_images_" + str(index_model)] = X_full_images
-            X_json["objects_images" + str(index_model)] = X_objects_images
-            X_json["surfaces_images" + str(index_model)] = X_surfaces_images
-            X_json["features" + str(index_model)] = X_features
+            X_json["objects_images_" + str(index_model)] = X_objects_images
+            X_json["surfaces_images_" + str(index_model)] = X_surfaces_images
+            X_json["features_" + str(index_model)] = X_features
         return X_json

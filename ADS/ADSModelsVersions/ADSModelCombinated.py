@@ -123,8 +123,11 @@ class ADSModelCombinated(ADSModelAbstract):
             models.append(model)
             index_model += 1
 
+        # OUTPUT LAYER
         combined_outputs = tf.keras.layers.concatenate([model.output for model in models])
-        model = tf.keras.Model(inputs=[model.input for model in models], outputs=combined_outputs, name=self.modelName)
+        output_layer = tf.keras.layers.Dense(1, activation="sigmoid", name="output")(combined_outputs)
+
+        model = tf.keras.Model(inputs=[model.input for model in models], outputs=output_layer, name=self.modelName)
         model.summary()
         return model
 
@@ -173,3 +176,17 @@ class ADSModelCombinated(ADSModelAbstract):
         addNewRetrainingEvaluation(evaluation_dict)
 
         return best_model_found
+
+    def __preprocessing_X__(self, X):
+        X_full_images = np.array(list(list(zip(*X))[0]))
+        X_objects_images = np.array(list(list(zip(*X))[1]))
+        X_surfaces_images = np.array(list(list(zip(*X))[2]))
+        X_features = np.array(list(list(zip(*X))[3]))
+        index_model = 0
+        X_json = {}
+        for model_config in self.models_configs:
+            X_json["full_images_" + str(index_model)] = X_full_images
+            X_json["objects_images" + str(index_model)] = X_objects_images
+            X_json["surfaces_images" + str(index_model)] = X_surfaces_images
+            X_json["features" + str(index_model)] = X_features
+        return X_json

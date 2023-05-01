@@ -17,7 +17,7 @@ class ADSModelAbstract(ABC):
     def __init__(self, iter_retraining=None):
         self.modelName = os.environ.get("DIGITAL_MODEL_NAME", "model")
         if iter_retraining:
-            self.modelName = self.modelName + "(Retraining " + str(iter_retraining) + ")"
+            self.modelName = self.modelName + "-Retraining" + str(iter_retraining)
 
         self.resizedImagesPath = getPathResizedImage()
         self.objectsImagesPath = getPathObjectsImage()

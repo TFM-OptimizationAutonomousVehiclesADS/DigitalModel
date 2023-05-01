@@ -6,7 +6,7 @@ import logging
 logging.info("INICIALIZANDO CONFIGURACION DE MONGODB...")
 
 # rootPath = "/app"
-rootPath = "/opt/tfm/OptimizationAutonomousVehiclesADS/DigitalModel"
+rootPath = "/opt/DigitalModel"
 
 setActualIpAndPort("127.0.0.1", 8001)
 

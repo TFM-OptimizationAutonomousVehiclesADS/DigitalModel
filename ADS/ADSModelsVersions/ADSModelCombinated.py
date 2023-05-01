@@ -111,14 +111,17 @@ class ADSModelCombinated(ADSModelAbstract):
     def create_model_layers(self, size_image, number_features):
         models = []
         index_model = 0
+
+        prefixed_layers = []
         for model_config in self.models_configs:
             model = tf.keras.models.model_from_json(json.dumps(model_config))
-            # Cambiar los nombres de las capas del modelo para que sean unicos
-            for layer in model.layers:
-                layer.name = layer.name + '_' + str(index_model)
+            prefixed_layers.append(tf.keras.layers.Lambda(lambda x: model(x), name='model_{}_'.format(index_model)))
             models.append(model)
             index_model += 1
-        combined_outputs = tf.keras.layers.concatenate([model.output for model in models])
+
+        # combined_outputs = tf.keras.layers.concatenate([model.output for model in models])
+        combined_outputs = tf.keras.layers.concatenate([layer.output for layer in prefixed_layers])
+
         model = tf.keras.Model(inputs=[model.input for model in models], outputs=combined_outputs, name=self.modelName)
         model.summary()
         return model

@@ -127,6 +127,7 @@ class ADSModelCombinated(ADSModelAbstract):
         combined_outputs = tf.keras.layers.concatenate([model.output for model in models])
         output_layer = tf.keras.layers.Dense(1, activation="sigmoid", name="output")(combined_outputs)
 
+        print([model.input for model in models])
         model = tf.keras.Model(inputs=[model.input for model in models], outputs=output_layer, name=self.modelName)
         model.summary()
         return model
@@ -141,7 +142,6 @@ class ADSModelCombinated(ADSModelAbstract):
                                                     validation_split)
 
         # RETRAIN
-        print(X_train)
         history = model.fit(X_train, y_train, epochs=epochs, validation_split=validation_split)
 
         if model_by_best_epoch:

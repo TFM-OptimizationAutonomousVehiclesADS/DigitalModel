@@ -185,11 +185,9 @@ class ADSModelMultiple(ADSModelAbstract):
             self.compile_model(model, optimizer, metrics)
 
         else:
-            best_hps = self.model.get_config()
             if retrainWeights:
                 model = self.__load_model__()
             else:
-                # model = keras.Model.from_config(best_hps)
                 model = self.create_model_layers(self.sizeImage, 3, index_model=index_model)
                 optimizer = os.environ.get("DIGITAL_MODEL_SIZE_IMAGES_OPTIMIZER", "adam")
                 threshold = self.threshold

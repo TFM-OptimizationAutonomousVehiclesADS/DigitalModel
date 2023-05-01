@@ -91,7 +91,6 @@ class ADSModelCombinated(ADSModelAbstract):
             self.compile_model(model, optimizer, metrics)
 
         else:
-            best_hps = self.model.get_config()
             if retrainWeights:
                 model = self.__load_model__()
             else:

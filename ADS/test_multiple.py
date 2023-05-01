@@ -29,7 +29,7 @@ if __name__ == "__main__":
     with open("/opt/DigitalModel/ADS/model_configs_test.json", "r") as f:
         model_configs = json.load(f)
 
-    os.environ.setdefault("DIGITAL_MODEL_COMBINE_MODEL_CONFIGS", json.dumps(model_configs))
+    print(json.dumps(model_configs))
 
     iter_retraining = iter_retraining + 1
     try:

@@ -270,10 +270,6 @@ class ADSModelAbstract(ABC):
         pass
 
     @abstractmethod
-    def replace_actual_model_json(self, model_json):
-        pass
-
-    @abstractmethod
     def get_model_image_base64(self, model):
         pass
 

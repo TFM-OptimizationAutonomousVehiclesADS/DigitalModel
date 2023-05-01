@@ -119,10 +119,13 @@ class ADSModelCombinated(ADSModelAbstract):
         index_model = 0
 
         for model_config in self.models_configs:
+            for layer in model_config["config"]["layers"]:
+                layer["name"] = layer.name + '_' + str(index_model)
+
             model = tf.keras.models.model_from_json(json.dumps(model_config))
-            # Cambiar los nombres de las capas del modelo para que sean unicos
-            for layer in model.layers:
-                layer._name = layer.name + '_' + str(index_model)
+            # # Cambiar los nombres de las capas del modelo para que sean unicos
+            # for layer in model.layers:
+            #     layer._name = layer.name + '_' + str(index_model)
             models.append(model)
             index_model += 1
 

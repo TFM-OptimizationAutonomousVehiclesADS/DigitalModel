@@ -24,12 +24,13 @@ if __name__ == "__main__":
     random_samples = int(os.environ.get('DIGITAL_MODEL_RETRAINING_RANDOM_SAMPLES', 1))
     iter_retraining = 1
 
-    adsModel = ADSModelMultiple(iter_retraining=iter_retraining)
-
     with open("/opt/DigitalModel/ADS/model_configs_test.json", "r") as f:
         model_configs = json.load(f)
 
     print(json.dumps(model_configs))
+    os.environ.setdefault("DIGITAL_MODEL_COMBINE_MODEL_CONFIGS", json.dumps(model_configs))
+
+    adsModel = ADSModelMultiple(iter_retraining=iter_retraining)
 
     iter_retraining = iter_retraining + 1
     try:

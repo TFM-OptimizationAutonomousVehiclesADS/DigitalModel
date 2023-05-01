@@ -123,7 +123,7 @@ class ADSModelCombinated(ADSModelAbstract):
             model_config_copy = model_config.copy()
             for layer in model_config_copy["config"]["layers"]:
                 print(layer)
-                layer["name"] = layer.name + '_' + str(index_model)
+                layer["name"] = layer["name"] + '_' + str(index_model)
 
             model = tf.keras.models.model_from_json(json.dumps(model_config))
             # # Cambiar los nombres de las capas del modelo para que sean unicos

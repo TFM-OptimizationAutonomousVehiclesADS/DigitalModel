@@ -114,22 +114,27 @@ class ADSModelCombinated(ADSModelAbstract):
                       loss=keras.losses.BinaryCrossentropy(),
                       metrics=metrics)
 
+    def add_prefix_model_config(self, model_config, prefix: str):
+        new_config = model_config.copy()
+        for layer in new_config["config"]["input_layers"]:
+            layer[0] = layer[0] + prefix
+        for layer in new_config["config"]["output_layers"]:
+            layer[0] = layer[0] + prefix
+        for layer in new_config["config"]["layers"]:
+            layer["name"] = layer["name"] + prefix
+            layer["config"]["name"] = layer["config"]["name"] + prefix
+            if len(layer['inbound_nodes']) > 0:
+                for in_node in layer['inbound_nodes'][0]:
+                    in_node[0] = in_node[0] + prefix
+        return new_config
+
     def create_model_layers(self, size_image, number_features):
         models = []
         index_model = 0
 
 
         for model_config in self.models_configs:
-            model_config_copy = model_config.copy()
-            for layer in model_config_copy["config"]["input_layers"]:
-                layer[0] = layer[0] + '_' + str(index_model)
-            for layer in model_config_copy["config"]["output_layers"]:
-                layer[0] = layer[0] + '_' + str(index_model)
-            for layer in model_config_copy["config"]["layers"]:
-                print(layer)
-                layer["name"] = layer["name"] + '_' + str(index_model)
-                layer["config"]["name"] = layer["config"]["name"] + '_' + str(index_model)
-
+            model_config_copy = self.add_prefix_model_config(model_config, "_" + str(index_model))
             model = tf.keras.models.model_from_json(json.dumps(model_config_copy))
             # # Cambiar los nombres de las capas del modelo para que sean unicos
             # for layer in model.layers:

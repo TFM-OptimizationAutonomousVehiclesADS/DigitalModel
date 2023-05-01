@@ -32,10 +32,11 @@ if __name__ == "__main__":
 
     adsModel = ADSModelMultiple(iter_retraining=iter_retraining)
 
+    retraining = False
     if adsModel.models:
         print("TIENE MODELOS")
-        print(adsModel.get_actual_evaluation_model())
-        exit(1)
+        # print(adsModel.get_actual_evaluation_model())
+        retraining = True
 
     iter_retraining = iter_retraining + 1
     try:
@@ -43,7 +44,7 @@ if __name__ == "__main__":
         epochs = random.randint(min_epochs, max_epochs)
 
         logging.info("** RETRAINING TASK: Comenzando Reentrenamiento....")
-        best_retrain_model = adsModel.retrain_model(retraining=False, test_size=test_size, random=random_samples, retrainWeights=False, size_split=size_split, epochs=10, tunning=False, model_by_best_epoch=False)
+        best_retrain_model = adsModel.retrain_model(retraining=retraining, test_size=test_size, random=random_samples, retrainWeights=False, size_split=size_split, epochs=10, tunning=False, model_by_best_epoch=False)
         logging.info("** RETRAINING TASK: FIN REENTRENAMIENTO")
 
         if best_retrain_model:

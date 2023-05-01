@@ -20,8 +20,10 @@ def getPathDatasetCsv():
 def getPathDatasetReviewedCsv():
     path = os.environ.get('DIGITAL_MODEL_DATASET_REVIEWED_PATH')
     if not path or path == "":
+        print("ENTRAAA")
         result = collection.find_one(sort=[("timestamp", pymongo.DESCENDING)])
         path = result.get("pathDatasetReviewedCsv")
+    print(path)
     return path
 
 def getPathDatasetHighAnomaliesCsv():

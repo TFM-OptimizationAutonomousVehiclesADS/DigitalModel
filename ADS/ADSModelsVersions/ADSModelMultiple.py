@@ -141,8 +141,9 @@ class ADSModelMultiple(ADSModelAbstract):
 
     def get_model_image_base64_multiple_models(self, models):
         model_image_paths = []
+        tmp_path = "/tmp/"
         for model in models:
-            model_image_path = getModelPath() + self.random_string() + ".png"
+            model_image_path = tmp_path + self.random_string() + ".png"
             model_image = keras.utils.plot_model(model, to_file=model_image_path, show_shapes=True)
             model_image_paths.append(model_image_path)
 
@@ -169,7 +170,7 @@ class ADSModelMultiple(ADSModelAbstract):
             output_image.paste(model_image, (start_width, 0))
             start_width += model_image.width
 
-        output_image_path = getModelPath() + self.random_string() + ".png"
+        output_image_path = tmp_path + self.random_string() + ".png"
         output_image.save(output_image_path)
 
         with open(output_image_path, 'rb') as f:

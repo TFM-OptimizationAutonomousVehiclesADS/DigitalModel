@@ -27,7 +27,6 @@ class ADSModelAbstract(ABC):
         widthImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_WIDTH', 80))
         heightImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_HEIGHT', 45))
         self.sizeImage = [heightImage, widthImage]
-        self.model = self.__load_model__()
         self.pathDatasetCsv = getPathDatasetCsv()
         self.pathDatasetReviewedCsv = getPathDatasetReviewedCsv()
         self.pathDatasetHighAnomaliesCsv = getPathDatasetHighAnomaliesCsv()

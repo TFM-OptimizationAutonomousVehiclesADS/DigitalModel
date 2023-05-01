@@ -21,6 +21,7 @@ class ADSModelRandom(ADSModelAbstract):
     def __init(self, iter_retraining=None):
         super().__init__(iter_retraining=iter_retraining)
         self.modelPath = os.path.join(getModelPath(), "actual_model.h5")
+        self.model = self.__load_model__()
 
     def __load_model__(self):
         if os.path.exists(self.modelPath):
@@ -216,7 +217,7 @@ class ADSModelRandom(ADSModelAbstract):
         output_layer = tf.keras.layers.Dense(1, activation="sigmoid", name="output")(concatenate_layer)
 
         # Model
-        model = keras.Model(inputs=[input_features, input_full_images, input_objects_image, input_surfaces_images],
+        model = tf.keras.Model(inputs=[input_features, input_full_images, input_objects_image, input_surfaces_images],
                             outputs=[output_layer], name=self.modelName)
         model.summary()
         return model

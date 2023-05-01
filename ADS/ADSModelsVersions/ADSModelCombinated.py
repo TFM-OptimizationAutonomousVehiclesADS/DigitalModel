@@ -16,11 +16,12 @@ import keras_tuner as kt
 import random
 from ADS.ADSModelAbstract import ADSModelAbstract
 
-class ADSModelSimple(ADSModelAbstract):
+class ADSModelCombinated(ADSModelAbstract):
 
     def __init(self, iter_retraining=None):
         super().__init__(iter_retraining=iter_retraining)
         self.modelPath = os.path.join(getModelPath(), "actual_model.h5")
+        self.models_configs = json.loads(os.environ.get('DIGITAL_MODEL_COMBINE_MODEL_CONFIGS'))
         self.model = self.__load_model__()
 
     def __load_model__(self):
@@ -109,34 +110,12 @@ class ADSModelSimple(ADSModelAbstract):
                       metrics=metrics)
 
     def create_model_layers(self, size_image, number_features):
-        # FEATURES LAYER
-        input_features = tf.keras.layers.Input(shape=(number_features,), name="features")
-
-        # RESIZED IMAGES LAYER
-        input_full_images = tf.keras.layers.Input(shape=(size_image[0], size_image[1], 3),
-                                                                               name="full_images")
-        input_full_flatten_images = tf.keras.layers.Flatten()(input_full_images)
-
-        # OBJECT IMAGES LAYER
-        input_objects_image = tf.keras.layers.Input(shape=(size_image[0], size_image[1], 3),
-                                                                                name="objects_images")
-        input_objects_flatten_images = tf.keras.layers.Flatten()(input_objects_image)
-
-        # OBJECT IMAGES LAYER
-        input_surfaces_images = tf.keras.layers.Input(
-            shape=(size_image[0], size_image[1], 3), name="surfaces_images")
-        input_surfaces_flatten_images = tf.keras.layers.Flatten()(input_surfaces_images)
-
-        # CONCATENATE LAYER
-        concatenate_layer = tf.keras.layers.concatenate(
-            [input_features, input_full_flatten_images, input_objects_flatten_images, input_surfaces_flatten_images])
-
-        # OUTPUT LAYER
-        output_layer = tf.keras.layers.Dense(1, activation="sigmoid", name="output")(concatenate_layer)
-
-        # Model
-        model = tf.keras.Model(inputs=[input_features, input_full_images, input_objects_image, input_surfaces_images],
-                            outputs=[output_layer], name=self.modelName)
+        models = []
+        for model_config in self.models_configs:
+            model = tf.keras.models.model_from_json(json.dumps(model_config))
+            models.append(model)
+        combined_outputs = tf.keras.layers.concatenate([model.output for model in models])
+        model = tf.keras.Model(inputs=[model.input for model in models], outputs=combined_outputs, name=self.modelName)
         model.summary()
         return model
 

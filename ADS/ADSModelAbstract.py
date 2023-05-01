@@ -288,10 +288,6 @@ class ADSModelAbstract(ABC):
         pass
 
     @abstractmethod
-    def create_model_by_combination_models(self, model_configs):
-        pass
-
-    @abstractmethod
     def create_model_layers(self, size_image, number_features):
         pass
 

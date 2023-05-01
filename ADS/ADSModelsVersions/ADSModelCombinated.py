@@ -246,14 +246,14 @@ class ADSModelCombinated(ADSModelAbstract):
                     print(sizeImage)
                     im1 = np.array(
                         resize_image(resized_image, size_image=sizeImage)) / 255.0
-                elif layer["name"] == "object_images":
+                elif layer["name"] == "objects_images":
                     heightImage = layer["config"]["batch_input_shape"][1]
                     widthImage = layer["config"]["batch_input_shape"][2]
                     sizeImage = [heightImage, widthImage]
                     print(sizeImage)
                     im2 = np.array(
                         resize_image(object_image, size_image=sizeImage)) / 255.0
-                elif layer["name"] == "surface_images":
+                elif layer["name"] == "surfaces_images":
                     heightImage = layer["config"]["batch_input_shape"][1]
                     widthImage = layer["config"]["batch_input_shape"][2]
                     sizeImage = [heightImage, widthImage]

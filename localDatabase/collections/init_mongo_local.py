@@ -5,8 +5,8 @@ import logging
 
 logging.info("INICIALIZANDO CONFIGURACION DE MONGODB...")
 
-# rootPath = "/app"
 rootPath = "/opt/DigitalModel"
+# rootPath = "/opt/tfm/OptimizationAutonomousVehiclesADS/DigitalModel"
 
 setActualIpAndPort("127.0.0.1", 8001)
 
@@ -42,11 +42,13 @@ setModelConfig({
     "filename_objects_image",
     "filename_surfaces_image"
   ],
-  "threshold": 0.75
+  "threshold": 0.5
 })
 
 setDatasetsPath({
-  "pathDatasetCsv": rootPath + "/datasets/dataset.csv",
+  "pathDatasetCsv": rootPath + "/datasets/dataset_all_no_missclassification.csv",
+  "pathDatasetReviewedCsv": rootPath + "/datasets/dataset_reviewed.csv",
+  "pathDatasetHighAnomaliesCsv": rootPath + "/datasets/dataset_high_anomalies.csv",
   "pathResizedImage": rootPath + "/datasets/resized_images",
   "pathObjectsImage": rootPath + "/datasets/objects_images",
   "pathSurfacesImage": rootPath + "/datasets/surfaces_images"

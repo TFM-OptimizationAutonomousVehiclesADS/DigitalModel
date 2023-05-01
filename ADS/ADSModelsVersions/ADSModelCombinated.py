@@ -25,7 +25,7 @@ class ADSModelCombinated(ADSModelAbstract):
         self.model = self.__load_model__()
         self.modelName = "Combinated_" + "_".join([str(x["config"]["name"]) for x in self.models_configs])
         if iter_retraining:
-            self.modelName = self.modelName + "(Retraining " + str(iter_retraining) + ")"
+            self.modelName = self.modelName + " > Retraining " + str(iter_retraining)
 
     def __load_model__(self):
         if os.path.exists(self.modelPath):

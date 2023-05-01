@@ -121,6 +121,10 @@ class ADSModelCombinated(ADSModelAbstract):
 
         for model_config in self.models_configs:
             model_config_copy = model_config.copy()
+            for layer in model_config_copy["config"]["input_layers"]:
+                layer[0] = layer[0] + '_' + str(index_model)
+            for layer in model_config_copy["config"]["output_layers"]:
+                layer[0] = layer[0] + '_' + str(index_model)
             for layer in model_config_copy["config"]["layers"]:
                 print(layer)
                 layer["name"] = layer["name"] + '_' + str(index_model)

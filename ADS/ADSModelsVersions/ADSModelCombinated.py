@@ -183,12 +183,23 @@ class ADSModelCombinated(ADSModelAbstract):
         X_objects_images = np.array(list(list(zip(*X))[1]))
         X_surfaces_images = np.array(list(list(zip(*X))[2]))
         X_features = np.array(list(list(zip(*X))[3]))
+
+        X_json = []
+
         index_model = 0
-        X_json = {}
         for model_config in self.models_configs:
-            X_json["full_images_" + str(index_model)] = X_full_images
-            X_json["objects_images_" + str(index_model)] = X_objects_images
-            X_json["surfaces_images_" + str(index_model)] = X_surfaces_images
-            X_json["features_" + str(index_model)] = X_features
+            model = tf.keras.models.model_from_json(json.dumps(model_config))
+            X_inputs = {}
+            for layer in model.layers:
+                if "features" in layer.name:
+                    X_inputs["features_" + str(index_model)] = X_features
+                elif "full_images" in layer.name:
+                    X_inputs["full_images_" + str(index_model)] = X_full_images
+                elif "objects_images" in layer.name:
+                    X_inputs["objects_images_" + str(index_model)] = X_objects_images
+                elif "surfaces_images" in layer.name:
+                    X_inputs["surfaces_images_" + str(index_model)] = X_surfaces_images
+            X_json.append(X_inputs)
             index_model += 1
+
         return X_json

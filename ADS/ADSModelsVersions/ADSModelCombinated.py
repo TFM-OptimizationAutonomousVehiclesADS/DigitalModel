@@ -141,6 +141,7 @@ class ADSModelCombinated(ADSModelAbstract):
                                                     validation_split)
 
         # RETRAIN
+        print(X_train)
         history = model.fit(X_train, y_train, epochs=epochs, validation_split=validation_split)
 
         if model_by_best_epoch:

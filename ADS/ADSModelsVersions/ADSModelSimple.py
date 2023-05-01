@@ -54,9 +54,9 @@ class ADSModelSimple(ADSModelAbstract):
         return yhat
 
     def save_model(self, model):
+        fullpath = self.modelPath
         if os.path.exists(fullpath):
             os.remove(fullpath)
-        fullpath = self.modelPath
         model.save(fullpath)
 
     def get_actual_model_json(self):

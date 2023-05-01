@@ -10,7 +10,6 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 import logging
 import datetime
-from ADS.ADSModel import ADSModel
 import json
 import os
 import pandas as pd

@@ -18,7 +18,7 @@ from ADS.ADSModelAbstract import ADSModelAbstract
 
 class ADSModelSimple(ADSModelAbstract):
 
-    def __init(self, iter_retraining=None):
+    def __init__(self, iter_retraining=None):
         super().__init__(iter_retraining=iter_retraining)
         self.modelPath = os.path.join(getModelPath(), "actual_model.h5")
         self.model = self.__load_model__()

@@ -18,7 +18,7 @@ from ADS.ADSModelAbstract import ADSModelAbstract
 
 class ADSModelCombinated(ADSModelAbstract):
 
-    def __init(self, iter_retraining=None):
+    def __init__(self, iter_retraining=None):
         super().__init__(iter_retraining=iter_retraining)
         self.modelPath = os.path.join(getModelPath(), "actual_model.h5")
         self.models_configs = json.loads(os.environ.get('DIGITAL_MODEL_COMBINE_MODEL_CONFIGS'))

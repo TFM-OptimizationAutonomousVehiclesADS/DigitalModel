@@ -205,7 +205,6 @@ class ADSModelMultiple(ADSModelAbstract):
                 threshold = self.threshold
                 metrics = self.metrics
                 self.compile_model(model, optimizer, metrics)
-        print(model)
         return model, tuner
 
     def compile_model(self, model, optimizer="adam", metrics=["accuracy"], tunning=False, hp=None):
@@ -271,7 +270,6 @@ class ADSModelMultiple(ADSModelAbstract):
         if "_id" in evaluation_dict_final:
             del evaluation_dict_final["_id"]
 
-        print(evaluation_dict_final)
         self.save_evaluation_model(evaluation_dict_final)
 
         best_model_found = self.is_better_model(evaluation_dict_final, metric=metric_objective)

@@ -188,7 +188,6 @@ class ADSModelCombinated(ADSModelAbstract):
     def __preprocessing_X__(self, X):
         X_json = {}
         index_model = 0
-        print(len(X))
         for model_config in self.models_configs:
             X_full_images = np.array(list(list(zip(*X))[0 + index_model*4]))
             X_objects_images = np.array(list(list(zip(*X))[1 + index_model*4]))

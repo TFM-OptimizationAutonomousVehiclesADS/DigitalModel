@@ -32,6 +32,11 @@ if __name__ == "__main__":
 
     adsModel = ADSModelMultiple(iter_retraining=iter_retraining)
 
+    if adsModel.models:
+        print("TIENE MODELOS")
+        print(adsModel.get_actual_evaluation_model())
+        exit(1)
+
     iter_retraining = iter_retraining + 1
     try:
         size_split = random.randint(min_size_split, max_size_split)

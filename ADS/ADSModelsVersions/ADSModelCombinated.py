@@ -189,4 +189,5 @@ class ADSModelCombinated(ADSModelAbstract):
             X_json["objects_images_" + str(index_model)] = X_objects_images
             X_json["surfaces_images_" + str(index_model)] = X_surfaces_images
             X_json["features_" + str(index_model)] = X_features
+            index_model += 1
         return X_json

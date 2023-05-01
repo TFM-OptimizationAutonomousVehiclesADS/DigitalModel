@@ -243,27 +243,23 @@ class ADSModelCombinated(ADSModelAbstract):
                     heightImage = layer["config"]["batch_input_shape"][1]
                     widthImage = layer["config"]["batch_input_shape"][2]
                     sizeImage = [heightImage, widthImage]
-                    print(sizeImage)
                     im1 = np.array(
                         resize_image(resized_image, size_image=sizeImage)) / 255.0
                 elif layer["name"] == "objects_images":
                     heightImage = layer["config"]["batch_input_shape"][1]
                     widthImage = layer["config"]["batch_input_shape"][2]
                     sizeImage = [heightImage, widthImage]
-                    print(sizeImage)
                     im2 = np.array(
                         resize_image(object_image, size_image=sizeImage)) / 255.0
                 elif layer["name"] == "surfaces_images":
                     heightImage = layer["config"]["batch_input_shape"][1]
                     widthImage = layer["config"]["batch_input_shape"][2]
                     sizeImage = [heightImage, widthImage]
-                    print(sizeImage)
                     im3 = np.array(
                         resize_image(surface_image, size_image=sizeImage)) / 255.0
             if im1 is not None and im2 is not None and im3 is not None:
-                print("Entra")
                 input_array = [im1, im2, im3, features_array]
-                inputs.extend(input_array)
+                inputs.append(input_array)
 
         X.append(inputs)
 

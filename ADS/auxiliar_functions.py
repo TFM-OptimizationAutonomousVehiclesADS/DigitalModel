@@ -79,6 +79,8 @@ def train_model(model, X_train, X_tests, y_train, y_tests, epochs=10):
 
 
 def get_evaluation_model(model, X_tests, y_tests):
+    print(len(X_tests))
+    print(len(y_tests))
     evaulation_dict = model.evaluate(X_tests, y_tests, verbose=2, return_dict=True)
     return evaulation_dict
 

@@ -250,6 +250,7 @@ class ADSModelMultiple(ADSModelAbstract):
             evaluation_dict["model_config"] = model.get_config()
             evaluation_dict["model_image_base64"] = self.get_model_image_base64(model)
             evaluation_dict["nameRetrainingModel"] = self.modelName
+            del evaluation_dict["_id"]
 
             evaluations_dict.append(evaluation_dict)
             models_retrained.append(model)

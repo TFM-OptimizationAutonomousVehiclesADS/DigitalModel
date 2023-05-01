@@ -19,8 +19,8 @@ if __name__ == "__main__":
     min_epochs = int(os.environ.get('DIGITAL_MODEL_RETRAINING_MIN_EPOCHS', 10))
     max_epochs = int(os.environ.get('DIGITAL_MODEL_RETRAINING_MAX_EPOCHS', 100))
     tunning = int(os.environ.get('DIGITAL_MODEL_RETRAINING_TUNNING', 0))
-    best_epoch = int(os.environ.get('DIGITAL_MODEL_RETRAINING_BEST_EPOCH', 1))
-    retrain_weights = int(os.environ.get('DIGITAL_MODEL_RETRAINING_RETRAIN_WEIGHTS', 1))
+    best_epoch = int(os.environ.get('DIGITAL_MODEL_RETRAINING_BEST_EPOCH', 0))
+    retrain_weights = int(os.environ.get('DIGITAL_MODEL_RETRAINING_RETRAIN_WEIGHTS', 0))
     random_samples = int(os.environ.get('DIGITAL_MODEL_RETRAINING_RANDOM_SAMPLES', 1))
     iter_retraining = 1
 

@@ -190,10 +190,10 @@ class ADSModelCombinated(ADSModelAbstract):
         index_model = 0
         print(len(X))
         for model_config in self.models_configs:
-            X_full_images = np.array(list(list(zip(*X[index_model]))[0]))
-            X_objects_images = np.array(list(list(zip(*X[index_model]))[1]))
-            X_surfaces_images = np.array(list(list(zip(*X[index_model]))[2]))
-            X_features = np.array(list(list(zip(*X[index_model]))[3]))
+            X_full_images = np.array(list(list(zip(*X))[0 + index_model*4]))
+            X_objects_images = np.array(list(list(zip(*X))[1 + index_model*4]))
+            X_surfaces_images = np.array(list(list(zip(*X))[2 + index_model*4]))
+            X_features = np.array(list(list(zip(*X))[3 + index_model*4]))
 
             model = tf.keras.models.model_from_json(json.dumps(model_config))
             for layer in model.layers:
@@ -260,7 +260,7 @@ class ADSModelCombinated(ADSModelAbstract):
                         resize_image(surface_image, size_image=sizeImage)) / 255.0
             if im1 is not None and im2 is not None and im3 is not None:
                 input_array = [im1, im2, im3, features_array]
-                inputs.append(input_array)
+                inputs.extend(input_array)
 
         X.append(inputs)
 

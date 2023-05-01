@@ -14,6 +14,7 @@ from ADS.ADSModel import ADSModel
 import json
 import os
 import pandas as pd
+from ADS.ADSModelFactory import ADSModelFactory
 
 
 app = FastAPI(middleware=[
@@ -106,7 +107,7 @@ async def logs_retraining_evaluation(fecha_inicio: str, fecha_fin: str):
 
 @app.get("/actual_evaluation_dict")
 async def actual_evaluation_dict():
-    adsModel = ADSModel()
+    adsModel = ADSModelFactory.getADSModelVersion()
     evaluation_dict = adsModel.get_actual_evaluation_model()
     if evaluation_dict:
         return {"evaluation_dict": evaluation_dict}
@@ -127,7 +128,7 @@ async def listen_sample(info: Request):
 @app.post("/predict_single")
 async def predict_single(info: Request):
     sampleJson = await info.json()
-    adsModel = ADSModel()
+    adsModel = ADSModelFactory.getADSModelVersion()
     prediction = adsModel.predict_sample(sampleJson)
     sampleJson["prediction"] = prediction
     return {"sample": sampleJson}
@@ -137,7 +138,7 @@ async def predict_single(info: Request):
 @app.post("/add_sample_dataset_reviewed")
 async def add_sample_dataset_reviewed(info: Request):
     sampleJson = await info.json()
-    adsModel = ADSModel()
+    adsModel = ADSModelFactory.getADSModelVersion()
     sampleJson = adsModel.add_sample_to_dataset(sampleJson, reviewed=True)
     return {"sample": sampleJson}
 
@@ -146,7 +147,7 @@ async def predict_multiple(info: Request):
     df_dict = await info.json()
     df = pd.read_json(df_dict)
     # df = pd.DataFrame(df_dict)
-    adsModel = ADSModel()
+    adsModel = ADSModelFactory.getADSModelVersion()
     samplesJson = []
     for index, row in df.iterrows():
         sampleJson = row.to_dict()
@@ -160,14 +161,14 @@ async def evaluate_dataframe(info: Request):
     df_dict = await info.json()
     df = pd.read_json(df_dict)
 
-    adsModel = ADSModel()
+    adsModel = ADSModelFactory.getADSModelVersion()
     evaluation_dict = adsModel.evaluate_dataframe(df)
 
     return {"evaluation_dict": evaluation_dict}
 
 @app.get("/actual_model_json")
 async def actual_model_json():
-    adsModel = ADSModel()
+    adsModel = ADSModelFactory.getADSModelVersion()
     model_json = adsModel.get_actual_model_json()
     if model_json:
         return {"model_json": model_json}
@@ -176,7 +177,7 @@ async def actual_model_json():
 
 @app.get("/actual_model_file")
 async def actual_model_json():
-    adsModel = ADSModel()
+    adsModel = ADSModelFactory.getADSModelVersion()
     model_path = adsModel.modelPath
     if not os.path.exists(model_path):
         raise HTTPException(status_code=404, detail="El modelo no se encuentra disponible.")
@@ -187,7 +188,7 @@ async def replace_actual_model(model_bytes: UploadFile, info: Request):
     info_json = await info.form()
     model_bytes = await model_bytes.read()
     evaluation_dict = json.loads(info_json["evaluation_dict"])
-    adsModel = ADSModel()
+    adsModel = ADSModelFactory.getADSModelVersion()
     # is_real_system = int(os.environ.get('IS_REAL_SYSTEM', 0))
     # if not is_real_system:
     #     raise HTTPException(status_code=403, detail="No es un sistema real")

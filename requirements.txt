@@ -13,3 +13,4 @@ pydot
 graphviz
 typing-extensions
 keras-tuner
+python-multipart

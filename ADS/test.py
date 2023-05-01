@@ -4,9 +4,6 @@ import time
 import random
 import os
 
-SLEEP_TIME = 60*5
-SLEEP_TIME_MAX = 60*10
-
 if __name__ == "__main__":
     logging.info("** RETRAINING TASK: Iniciando Modelo de Detección de Anomalías....")
 
@@ -25,22 +22,19 @@ if __name__ == "__main__":
     random_samples = int(os.environ.get('DIGITAL_MODEL_RETRAINING_RANDOM_SAMPLES', 1))
     iter_retraining = 1
 
-    while True:
-        adsModel = ADSModelFactory.getADSModelVersion(iter_retraining=iter_retraining)
-        iter_retraining = iter_retraining + 1
-        try:
-            size_split = random.randint(min_size_split, max_size_split)
-            epochs = random.randint(min_epochs, max_epochs)
+    adsModel = ADSModelFactory.getADSModelVersion(iter_retraining=iter_retraining)
+    iter_retraining = iter_retraining + 1
+    try:
+        size_split = random.randint(min_size_split, max_size_split)
+        epochs = random.randint(min_epochs, max_epochs)
 
-            logging.info("** RETRAINING TASK: Comenzando Reentrenamiento....")
-            best_retrain_model = adsModel.retrain_model(test_size=test_size, random=random_samples, retrainWeights=retrain_weights, size_split=size_split, epochs=epochs, tunning=tunning, model_by_best_epoch=best_epoch)
-            logging.info("** RETRAINING TASK: FIN REENTRENAMIENTO")
+        logging.info("** RETRAINING TASK: Comenzando Reentrenamiento....")
+        best_retrain_model = adsModel.retrain_model(test_size=test_size, random=random_samples, retrainWeights=retrain_weights, size_split=size_split, epochs=epochs, tunning=tunning, model_by_best_epoch=best_epoch)
+        logging.info("** RETRAINING TASK: FIN REENTRENAMIENTO")
 
-            if best_retrain_model:
-                logging.info("** RETRAINING TASK: BEST RETRAIN MODEL FOUND")
-                # TODO SEND NOTIFICATION TO API CENTRAL SYSTEM
+        if best_retrain_model:
+            logging.info("** RETRAINING TASK: BEST RETRAIN MODEL FOUND")
+            # TODO SEND NOTIFICATION TO API CENTRAL SYSTEM
 
-        except Exception as e:
-            logging.exception("Error en ADS: " + str(e))
-
-        time.sleep(random.randint(SLEEP_TIME, SLEEP_TIME_MAX))
+    except Exception as e:
+        logging.exception("Error en ADS: " + str(e))

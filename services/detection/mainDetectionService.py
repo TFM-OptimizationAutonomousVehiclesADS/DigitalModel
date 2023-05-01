@@ -1,14 +1,13 @@
 from localDatabase.queues.queueSamples import QueueSamples
 from localDatabase.collections.DetectedAnomalies.queries import addAnomalySample
 from localDatabase.collections.PredictionLogs.queries import addPredictionLogSample
-from ADS.ADSModel import ADSModel
+from ADS.ADSModelFactory import ADSModelFactory
 import datetime
 import logging
 
 queueSamples = QueueSamples()
 
 if __name__ == "__main__":
-    # adsModel = ADSModel()
     while True:
         try:
             logging.info("WAITING NEXT SAMPLE...")
@@ -17,7 +16,7 @@ if __name__ == "__main__":
             logging.info("Next sample:")
             logging.info(sample)
 
-            adsModel = ADSModel()
+            adsModel = ADSModelFactory.getADSModelVersion()
 
             y = sample["anomaly"]
             y_pred = adsModel.predict_sample(sample)

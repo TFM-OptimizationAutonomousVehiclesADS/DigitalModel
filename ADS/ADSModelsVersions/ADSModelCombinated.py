@@ -16,6 +16,7 @@ import keras_tuner as kt
 import random
 from ADS.ADSModelAbstract import ADSModelAbstract
 
+
 class ADSModelCombinated(ADSModelAbstract):
 
     def __init__(self, iter_retraining=None):
@@ -134,7 +135,8 @@ class ADSModelCombinated(ADSModelAbstract):
         model.summary()
         return model
 
-    def retrain_model(self, retraining=True, retrainWeights=False, tunning=False, model_by_best_epoch=False, random=None,
+    def retrain_model(self, retraining=True, retrainWeights=False, tunning=False, model_by_best_epoch=False,
+                      random=None,
                       size_split=None, test_size=0.25, epochs=10, validation_split=0.2):
         X_train, X_tests, y_train, y_tests = self.__get_train_test_split__(self.dataset, random, size_split, test_size)
 
@@ -181,15 +183,14 @@ class ADSModelCombinated(ADSModelAbstract):
         return best_model_found
 
     def __preprocessing_X__(self, X):
-        X_full_images = np.array(list(list(zip(*X))[0]))
-        X_objects_images = np.array(list(list(zip(*X))[1]))
-        X_surfaces_images = np.array(list(list(zip(*X))[2]))
-        X_features = np.array(list(list(zip(*X))[3]))
-
         X_json = []
-
         index_model = 0
         for model_config in self.models_configs:
+            X_full_images = np.array(list(list(zip(*X[index_model]))[0]))
+            X_objects_images = np.array(list(list(zip(*X[index_model]))[1]))
+            X_surfaces_images = np.array(list(list(zip(*X[index_model]))[2]))
+            X_features = np.array(list(list(zip(*X[index_model]))[3]))
+
             model = tf.keras.models.model_from_json(json.dumps(model_config))
             X_inputs = {}
             for layer in model.layers:
@@ -205,3 +206,63 @@ class ADSModelCombinated(ADSModelAbstract):
             index_model += 1
 
         return X_json
+
+    def __preprocessing_sample__(self, sample):
+        X = []
+        y = []
+        inputs = []
+
+        if "key_camera_token" in sample:
+            key_camera_token = sample["key_camera_token"]
+            filename = key_camera_token + ".jpg"
+            resized_image = Image.open(self.resizedImagesPath + "/" + filename)
+            object_image = Image.open(self.objectsImagesPath + "/" + filename)
+            surface_image = Image.open(self.surfacesImagesPath + "/" + filename)
+        else:
+            resized_image = Image.open(io.BytesIO(base64.b64decode(sample["resizedImage"].encode("utf-8"))))
+            object_image = Image.open(io.BytesIO(base64.b64decode(sample["objectImage"].encode("utf-8"))))
+            surface_image = Image.open(io.BytesIO(base64.b64decode(sample["surfaceImage"].encode("utf-8"))))
+
+        camera = int(get_float_channel_camera(sample["channel_camera"]))
+        speed = float(sample["speed"])
+        rotation = float(sample["rotation_rate_z"])
+        features_array = [camera, speed, rotation]
+
+        # Convertir la imagen a RGB
+        resized_image = resized_image.convert('RGB')
+        object_image = object_image.convert('RGB')
+        surface_image = surface_image.convert('RGB')
+
+        for model_config in self.models_configs:
+            im1 = None
+            im2 = None
+            im3 = None
+            for layer in model_config["config"]["layers"]:
+                if layer["name"] == "full_images":
+                    heightImage = layer["config"]["batch_input_shape"][1]
+                    widthImage = layer["config"]["batch_input_shape"][2]
+                    sizeImage = [heightImage, widthImage]
+                    im1 = np.array(
+                        resize_image(resized_image, size_image=sizeImage)) / 255.0
+                elif layer["name"] == "object_images":
+                    heightImage = layer["config"]["batch_input_shape"][1]
+                    widthImage = layer["config"]["batch_input_shape"][2]
+                    sizeImage = [heightImage, widthImage]
+                    im2 = np.array(
+                        resize_image(object_image, size_image=sizeImage)) / 255.0
+                elif layer["name"] == "surface_images":
+                    heightImage = layer["config"]["batch_input_shape"][1]
+                    widthImage = layer["config"]["batch_input_shape"][2]
+                    sizeImage = [heightImage, widthImage]
+                    im3 = np.array(
+                        resize_image(surface_image, size_image=sizeImage)) / 255.0
+            if im1 is not None and im2 is not None and im3 is not None:
+                input_array = [im1, im2, im3, features_array]
+                inputs.append(input_array)
+
+        X.append(inputs)
+
+        if "anomaly" in sample:
+            y.append([sample["anomaly"]])
+
+        return X, y

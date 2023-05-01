@@ -118,8 +118,11 @@ class ADSModelCombinated(ADSModelAbstract):
         models = []
         index_model = 0
 
+
         for model_config in self.models_configs:
-            for layer in model_config["config"]["layers"]:
+            model_config_copy = model_config.copy()
+            for layer in model_config_copy["config"]["layers"]:
+                print(layer)
                 layer["name"] = layer.name + '_' + str(index_model)
 
             model = tf.keras.models.model_from_json(json.dumps(model_config))

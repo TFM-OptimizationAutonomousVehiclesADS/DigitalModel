@@ -9,8 +9,8 @@
           "config": {
             "batch_input_shape": [
               null,
-              45,
-              80,
+              50,
+              85,
               3
             ],
             "dtype": "float32",
@@ -26,8 +26,8 @@
           "config": {
             "batch_input_shape": [
               null,
-              45,
-              80,
+              50,
+              85,
               3
             ],
             "dtype": "float32",
@@ -43,8 +43,8 @@
           "config": {
             "batch_input_shape": [
               null,
-              45,
-              80,
+              50,
+              85,
               3
             ],
             "dtype": "float32",

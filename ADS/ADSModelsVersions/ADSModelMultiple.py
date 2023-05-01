@@ -131,8 +131,17 @@ class ADSModelMultiple(ADSModelAbstract):
         return random_string
 
     def get_model_image_base64(self, model):
+        model_image_path = getImageModelPath()
+        model_image = keras.utils.plot_model(model, to_file=model_image_path, show_shapes=True)
+        with open(model_image_path, 'rb') as f:
+            img_bytes = io.BytesIO(f.read())
+        # Convertir la imagen a base64
+        base64_image = base64.b64encode(img_bytes.getvalue()).decode('utf-8')
+        return base64_image
+
+    def get_model_image_base64_multiple_models(self, models):
         model_image_paths = []
-        for model_config in self.models_configs:
+        for model in models:
             model_image_path = getModelPath() + self.random_string() + ".png"
             model_image = keras.utils.plot_model(model, to_file=model_image_path, show_shapes=True)
             model_image_paths.append(model_image_path)
@@ -151,7 +160,6 @@ class ADSModelMultiple(ADSModelAbstract):
         for model_image in model_images:
             model_image = model_image.resize(
                 (int(model_image.width * (max_height / model_image.height)), max_height))
-
 
         # Crea la imagen de salida
         output_image = Image.new('RGB', (sum_width, max_height))
@@ -238,20 +246,9 @@ class ADSModelMultiple(ADSModelAbstract):
                 history = model.fit(X_train, y_train, epochs=best_epoch, validation_split=validation_split)
 
             evaluation_dict = self.get_evaluation_dict(model, X_tests, y_tests)
-            evaluation_dict["random"] = random
-            evaluation_dict["retrain_weights"] = retrainWeights
-            evaluation_dict["tunning"] = tunning
             evaluation_dict["best_epoch"] = model_by_best_epoch
-            evaluation_dict["history"] = history.history
-            evaluation_dict["size_split"] = size_split
-            evaluation_dict["test_size"] = test_size
             evaluation_dict["epochs"] = epochs
-            evaluation_dict["retraining"] = retraining
             evaluation_dict["model_config"] = model.get_config()
-            evaluation_dict["model_image_base64"] = self.get_model_image_base64(model)
-            evaluation_dict["nameRetrainingModel"] = self.modelName
-            del evaluation_dict["_id"]
-
             evaluations_dict.append(evaluation_dict)
             models_retrained.append(model)
             addNewRetrainingEvaluation(evaluation_dict)
@@ -259,6 +256,17 @@ class ADSModelMultiple(ADSModelAbstract):
             index_model += 1
 
         evaluation_dict_final = self.__get_evaluation_dict_by_evaluations__(evaluations_dict)
+        evaluation_dict_final["model_image_base64"] = self.get_model_image_base64_multiple_models(models_retrained)
+        evaluation_dict_final["nameRetrainingModel"] = self.modelName
+        evaluation_dict_final["retraining"] = retraining
+        evaluation_dict_final["test_size"] = test_size
+        evaluation_dict_final["size_split"] = size_split
+        evaluation_dict_final["tunning"] = tunning
+        evaluation_dict_final["random"] = random
+        evaluation_dict_final["retrain_weights"] = retrainWeights
+        if "_id" in evaluation_dict_final:
+            del evaluation_dict_final["_id"]
+
         print(evaluation_dict_final)
         self.save_evaluation_model(evaluation_dict_final)
 

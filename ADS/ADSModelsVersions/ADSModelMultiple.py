@@ -258,6 +258,7 @@ class ADSModelMultiple(ADSModelAbstract):
             index_model += 1
 
         evaluation_dict_final = self.__get_evaluation_dict_by_evaluations__(evaluations_dict)
+        print(evaluation_dict_final)
         self.save_evaluation_model(evaluation_dict_final)
 
         best_model_found = self.is_better_model(evaluation_dict_final, metric=metric_objective)

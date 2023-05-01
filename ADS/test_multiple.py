@@ -38,7 +38,7 @@ if __name__ == "__main__":
         epochs = random.randint(min_epochs, max_epochs)
 
         logging.info("** RETRAINING TASK: Comenzando Reentrenamiento....")
-        best_retrain_model = adsModel.retrain_model(retraining=False, test_size=test_size, random=random_samples, retrainWeights=retrain_weights, size_split=size_split, epochs=epochs, tunning=tunning, model_by_best_epoch=best_epoch)
+        best_retrain_model = adsModel.retrain_model(retraining=False, test_size=test_size, random=random_samples, retrainWeights=False, size_split=size_split, epochs=10, tunning=False, model_by_best_epoch=False)
         logging.info("** RETRAINING TASK: FIN REENTRENAMIENTO")
 
         if best_retrain_model:

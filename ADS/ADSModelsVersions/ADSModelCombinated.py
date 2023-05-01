@@ -185,7 +185,6 @@ class ADSModelCombinated(ADSModelAbstract):
     def __preprocessing_X__(self, X):
         X_json = []
         index_model = 0
-        print(X)
         for model_config in self.models_configs:
             X_full_images = np.array(list(list(zip(*X[index_model]))[0]))
             X_objects_images = np.array(list(list(zip(*X[index_model]))[1]))
@@ -259,7 +258,7 @@ class ADSModelCombinated(ADSModelAbstract):
                         resize_image(surface_image, size_image=sizeImage)) / 255.0
             if im1 is not None and im2 is not None and im3 is not None:
                 input_array = [im1, im2, im3, features_array]
-                inputs.append(input_array)
+                inputs.extend(input_array)
 
         X.append(inputs)
 

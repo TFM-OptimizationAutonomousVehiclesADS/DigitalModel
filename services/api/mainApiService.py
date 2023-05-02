@@ -137,7 +137,7 @@ async def get_samples_dataset_reviewed():
     adsModel = ADSModelFactory.getADSModelVersion()
     datasetReviewedDataframe = adsModel.get_dataset_reviewed()
     samplesJson = []
-    if datasetReviewedDataframe:
+    if datasetReviewedDataframe is not None:
         samplesJson = datasetReviewedDataframe.to_dict('records')
     return {"samples": samplesJson}
 

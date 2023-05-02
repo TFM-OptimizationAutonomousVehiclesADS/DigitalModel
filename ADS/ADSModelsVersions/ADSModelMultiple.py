@@ -24,6 +24,13 @@ class ADSModelMultiple(ADSModelAbstract):
         self.models_configs = json.loads(os.environ.get('DIGITAL_MODEL_COMBINE_MODEL_CONFIGS'))
         self.models = self.__load_model__()
         self.model = self.models
+        for model_config in self.models_configs:
+            for layer in model_config["config"]["layers"]:
+                if layer["name"] == "full_images":
+                    heightImage = layer["config"]["batch_input_shape"][1]
+                    widthImage = layer["config"]["batch_input_shape"][2]
+                    sizeImage = [heightImage, widthImage]
+                    self.sizeImage = sizeImage
 
     def __load_model__(self):
         models = []

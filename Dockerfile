@@ -21,10 +21,10 @@ RUN pip install -r requirements.txt
 
 # COPY /etc/redis/redis.conf /etc/redis/redis.conf
 
-COPY ./services/detection/ads.service /etc/systemd/system/
-COPY ./services/api/api.service /etc/systemd/system/
-COPY ./services/simulator/simulator.service /etc/systemd/system/
-COPY ./services/retraining/retraining.service /etc/systemd/system/
+#COPY ./services/detection/ads.service /etc/systemd/system/
+#COPY ./services/api/api.service /etc/systemd/system/
+#COPY ./services/simulator/simulator.service /etc/systemd/system/
+#COPY ./services/retraining/retraining.service /etc/systemd/system/
 
 COPY start.sh /usr/local/bin/
 

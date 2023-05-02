@@ -29,10 +29,10 @@ setModelConfig({
     "filename_surfaces_image"
   ],
   "sizeImageHeight": {
-    "$numberLong": "45"
+    "$numberLong": "90"
   },
   "sizeImageWidth": {
-    "$numberLong": "80"
+    "$numberLong": "160"
   },
   "features": [
     "channel_camera",

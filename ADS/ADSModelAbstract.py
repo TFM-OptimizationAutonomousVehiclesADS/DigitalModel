@@ -24,8 +24,8 @@ class ADSModelAbstract(ABC):
         self.surfacesImagesPath = getPathSurfacesImage()
         self.threshold = float(os.environ.get('DIGITAL_MODEL_THRESHOLD_ANOMALY', 0.5))
         self.thresholdHigh = float(os.environ.get('DIGITAL_MODEL_HIGH_THRESHOLD_ANOMALY', 0.85))
-        widthImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_WIDTH', 80))
-        heightImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_HEIGHT', 45))
+        widthImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_WIDTH', 160))
+        heightImage = int(os.environ.get('DIGITAL_MODEL_SIZE_IMAGES_HEIGHT', 90))
         self.sizeImage = [heightImage, widthImage]
         self.pathDatasetCsv = getPathDatasetCsv()
         self.pathDatasetReviewedCsv = getPathDatasetReviewedCsv()

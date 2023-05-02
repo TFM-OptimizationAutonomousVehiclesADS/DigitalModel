@@ -23,6 +23,7 @@ class ADSModelMultiple(ADSModelAbstract):
         super().__init__(iter_retraining=iter_retraining)
         self.models_configs = json.loads(os.environ.get('DIGITAL_MODEL_COMBINE_MODEL_CONFIGS'))
         self.models = self.__load_model__()
+        self.model = self.models
 
     def __load_model__(self):
         models = []

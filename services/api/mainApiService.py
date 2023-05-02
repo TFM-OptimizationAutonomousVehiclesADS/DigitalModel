@@ -132,7 +132,15 @@ async def predict_single(info: Request):
     sampleJson["prediction"] = prediction
     return {"sample": sampleJson}
 
-
+@app.post("/add_samples_dataset_reviewed")
+async def add_samples_dataset_reviewed(info: Request):
+    samplesJson = await info.json()
+    adsModel = ADSModelFactory.getADSModelVersion()
+    samplesResult = []
+    for sampleJson in samplesJson:
+        sampleJson = adsModel.add_sample_to_dataset(sampleJson, reviewed=True)
+        samplesResult.append(sampleJson)
+    return {"samples": samplesResult}
 
 @app.post("/add_sample_dataset_reviewed")
 async def add_sample_dataset_reviewed(info: Request):

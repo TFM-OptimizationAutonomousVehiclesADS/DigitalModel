@@ -4,6 +4,7 @@ from ADS.ADSModelsVersions.ADSModelMultiple import ADSModelMultiple
 from ADS.ADSModelsVersions.ADSModelRandom import ADSModelRandom
 from ADS.ADSModelsVersions.ADSModelTunning import ADSModelTunning
 from ADS.ADSModelsVersions.ADSModelCombinated import ADSModelCombinated
+from ADS.ADSModelsVersions.ADSRealSystem import ADSRealSystem
 
 
 class ADSModelFactory:
@@ -25,5 +26,8 @@ class ADSModelFactory:
         elif os.environ.get('DIGITAL_MODEL_VERSION') == "COMBINATED":
             print("********** DIGITAL MODEL VERSION: COMBINATED *********")
             return ADSModelCombinated(iter_retraining)
+        elif os.environ.get('DIGITAL_MODEL_VERSION') == "REAL_SYSTEM":
+            print("********** DIGITAL MODEL VERSION: REAL_SYSTEM *********")
+            return ADSRealSystem(iter_retraining)
         else:
             return ADSModelRandom(iter_retraining)

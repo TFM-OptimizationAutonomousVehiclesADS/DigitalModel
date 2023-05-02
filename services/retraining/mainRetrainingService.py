@@ -38,7 +38,6 @@ if __name__ == "__main__":
 
             if best_retrain_model:
                 logging.info("** RETRAINING TASK: BEST RETRAIN MODEL FOUND")
-                # TODO SEND NOTIFICATION TO API CENTRAL SYSTEM
 
         except Exception as e:
             logging.exception("Error en ADS: " + str(e))

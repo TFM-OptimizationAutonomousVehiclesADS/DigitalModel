@@ -132,6 +132,15 @@ async def predict_single(info: Request):
     sampleJson["prediction"] = prediction
     return {"sample": sampleJson}
 
+@app.get("/get_samples_dataset_reviewed")
+async def get_samples_dataset_reviewed():
+    adsModel = ADSModelFactory.getADSModelVersion()
+    datasetReviewedDataframe = adsModel.get_dataset_reviewed()
+    samplesJson = []
+    if datasetReviewedDataframe:
+        samplesJson = datasetReviewedDataframe.to_dict('records')
+    return {"samples": samplesJson}
+
 @app.post("/add_samples_dataset_reviewed")
 async def add_samples_dataset_reviewed(info: Request):
     samplesJson = await info.json()

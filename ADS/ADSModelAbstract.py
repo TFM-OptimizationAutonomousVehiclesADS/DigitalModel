@@ -46,6 +46,9 @@ class ADSModelAbstract(ABC):
             self.datasetReviewed = pd.DataFrame(columns=self.dataset.columns)
             self.datasetReviewed.to_csv(self.pathDatasetReviewedCsv, index=False)
 
+    def get_dataset_reviewed(self):
+        return self.datasetReviewed
+
     def __load_dataset_high_anomalies__(self):
         if os.path.exists(self.pathDatasetHighAnomaliesCsv):
             self.datasetHighAnomalies = pd.read_csv(self.pathDatasetHighAnomaliesCsv)

@@ -1,5 +1,5 @@
 
-from ADS.ADSModelsVersions.ADSModelSimple import ADSModelSimple
+from ADS.ADSModelFactory import ADSModelFactory
 import logging
 import os
 
@@ -11,7 +11,7 @@ if __name__ == "__main__":
     random_samples = int(os.environ.get('DIGITAL_MODEL_RETRAINING_RANDOM_SAMPLES', 1))
 
     logging.info("** INIT TRAINING: Iniciando Modelo de Detección de Anomalías....")
-    adsModel = ADSModelSimple()
+    adsModel = ADSModelFactory.getADSModelVersion()
     if adsModel.model is None:
         logging.info("** INIT TRAINING: Comenzando entrenamiento....")
         adsModel.retrain_model(random=random_samples, size_split=min_size_split, test_size=test_size, epochs=min_epochs, model_by_best_epoch=best_epoch, retraining=False)

@@ -24,9 +24,6 @@ class ADSModelCombinated(ADSModelAbstract):
         self.modelPath = os.path.join(getModelPath(), "actual_model.h5")
         self.models_configs = json.loads(os.environ.get('DIGITAL_MODEL_COMBINE_MODEL_CONFIGS'))
         self.model = self.__load_model__()
-        self.modelName = "Combinated_" + "_".join([str(x["config"]["name"]) for x in self.models_configs])
-        if iter_retraining:
-            self.modelName = self.modelName + "-Retraining" + str(iter_retraining)
 
     def __load_model__(self):
         if os.path.exists(self.modelPath):

@@ -3,6 +3,7 @@ import os.path
 from localDatabase.collections.MLModelConfiguration.queries import *
 from localDatabase.collections.SamplesDataset.queries import *
 from localDatabase.collections.TrainingEvaluationLogs.queries import addNewRetrainingEvaluation
+from localDatabase.collections.BestTrainingEvaluationLogs import queries as BestTrainingQueries
 import pandas as pd
 from ADS.auxiliar_functions import *
 import tensorflow as tf
@@ -182,6 +183,7 @@ class ADSModelSimple(ADSModelAbstract):
             self.save_model(model)
             self.save_evaluation_model(evaluation_dict)
             self.model = model
+            BestTrainingQueries.addNewRetrainingEvaluation(evaluation_dict)
 
         addNewRetrainingEvaluation(evaluation_dict)
 

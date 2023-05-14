@@ -16,6 +16,8 @@ import keras_tuner as kt
 import random
 import string
 from ADS.ADSModelAbstract import ADSModelAbstract
+from localDatabase.collections.BestTrainingEvaluationLogs import queries as BestTrainingQueries
+
 
 class ADSModelMultiple(ADSModelAbstract):
 
@@ -259,7 +261,6 @@ class ADSModelMultiple(ADSModelAbstract):
             evaluation_dict["model_config"] = model.get_config()
             evaluations_dict.append(evaluation_dict)
             models_retrained.append(model)
-            addNewRetrainingEvaluation(evaluation_dict)
 
             index_model += 1
 
@@ -275,7 +276,6 @@ class ADSModelMultiple(ADSModelAbstract):
         if "_id" in evaluation_dict_final:
             del evaluation_dict_final["_id"]
 
-        self.save_evaluation_model(evaluation_dict_final)
 
         best_model_found = self.is_better_model(evaluation_dict_final, metric=metric_objective)
         if not retraining or best_model_found:
@@ -285,4 +285,9 @@ class ADSModelMultiple(ADSModelAbstract):
                 model_path = os.path.join(getModelPath(), "actual_model_" + str(index_model) + ".h5")
                 self.save_model(model, modelPath=model_path)
                 index_model += 1
+            self.save_evaluation_model(evaluation_dict_final)
+            BestTrainingQueries.addNewRetrainingEvaluation(evaluation_dict_final)
+
+        addNewRetrainingEvaluation(evaluation_dict_final)
+
         return best_model_found

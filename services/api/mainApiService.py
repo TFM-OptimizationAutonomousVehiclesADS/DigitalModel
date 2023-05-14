@@ -5,6 +5,7 @@ from localDatabase.collections.ApiAccessConfiguration.queries import getActualIp
 from localDatabase.collections.DetectedAnomalies.queries import getLastAnomaliesSamples, getAllAnomaliesSamples
 from localDatabase.collections.PredictionLogs.queries import getAllLogsSample, getLastLogsSample
 from localDatabase.collections.TrainingEvaluationLogs.queries import getAllRetrainingEvaluations, getLastRetrainingEvaluations
+from localDatabase.collections.BestTrainingEvaluationLogs import queries as BestTrainingQueries
 from localDatabase.queues.queueSamples import QueueSamples
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
@@ -87,6 +88,15 @@ async def all_logs_retraining_evaluation():
     else:
         return "error", 500
 
+@app.get("/all_logs_best_retraining_evaluation")
+async def all_logs_best_retraining_evaluation():
+    result = BestTrainingQueries.getAllRetrainingEvaluations()
+    logging.info(result)
+    if result:
+        return {"logs": json.dumps(result, default=str)}
+    else:
+        return "error", 500
+
 @app.get("/logs_retraining_evaluation/{fecha_inicio}/{fecha_fin}")
 async def logs_retraining_evaluation(fecha_inicio: str, fecha_fin: str):
     # Convertir las cadenas de fecha a objetos de fecha de Python
@@ -98,6 +108,23 @@ async def logs_retraining_evaluation(fecha_inicio: str, fecha_fin: str):
         fecha_fin_obj = datetime.datetime.strptime(fecha_fin, "%d-%m-%YT%H:%M").timestamp()
 
     result = getLastRetrainingEvaluations(fecha_inicio_obj, fecha_fin_obj)
+    logging.info(result)
+    if result:
+        return {"logs": json.dumps(result, default=str)}
+    else:
+        return "error", 500
+
+@app.get("/logs_best_retraining_evaluation/{fecha_inicio}/{fecha_fin}")
+async def logs_best_retraining_evaluation(fecha_inicio: str, fecha_fin: str):
+    # Convertir las cadenas de fecha a objetos de fecha de Python
+    fecha_inicio_obj = None
+    if fecha_inicio:
+        fecha_inicio_obj = datetime.datetime.strptime(fecha_inicio, "%d-%m-%YT%H:%M").timestamp()
+    fecha_fin_obj = None
+    if fecha_fin:
+        fecha_fin_obj = datetime.datetime.strptime(fecha_fin, "%d-%m-%YT%H:%M").timestamp()
+
+    result = BestTrainingQueries.getLastRetrainingEvaluations(fecha_inicio_obj, fecha_fin_obj)
     logging.info(result)
     if result:
         return {"logs": json.dumps(result, default=str)}

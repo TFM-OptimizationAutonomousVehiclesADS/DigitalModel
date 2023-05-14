@@ -15,6 +15,8 @@ import os
 import keras_tuner as kt
 import random
 from ADS.ADSModelAbstract import ADSModelAbstract
+from localDatabase.collections.BestTrainingEvaluationLogs import queries as BestTrainingQueries
+
 
 
 class ADSModelCombinated(ADSModelAbstract):
@@ -193,6 +195,7 @@ class ADSModelCombinated(ADSModelAbstract):
             self.save_model(model)
             self.save_evaluation_model(evaluation_dict)
             self.model = model
+            BestTrainingQueries.addNewRetrainingEvaluation(evaluation_dict)
 
         addNewRetrainingEvaluation(evaluation_dict)
 

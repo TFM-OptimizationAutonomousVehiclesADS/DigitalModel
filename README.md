@@ -1,8 +1,13 @@
 # DigitalModel
 
+# Requisites
+Docker:
+sudo apt install docker.io
+
 ## Instalación
 
 git clone https://github.com/TFM-OptimizationAutonomousVehiclesADS/DigitalModel.git
+
 cd DigitalModel
 
 ## Construir Docker

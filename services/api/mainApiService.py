@@ -240,6 +240,7 @@ async def replace_actual_model(model_bytes: UploadFile, info: Request):
             f.write(model_bytes)
         adsModel.__load_model__()
         adsModel.save_evaluation_model(evaluation_dict)
+        BestTrainingQueries.addNewRetrainingEvaluation(evaluation_dict)
     except:
         raise HTTPException(status_code=500, detail="No se pudo actualizar el modelo.")
     return {"success": True}

@@ -29,7 +29,7 @@ if __name__ == "__main__":
         adsModel = ADSModelFactory.getADSModelVersion(iter_retraining=iter_retraining)
         iter_retraining = iter_retraining + 1
         try:
-            size_split = random.randint(min_size_split, max_size_split)
+            size_split = min_size_split
             epochs = random.randint(min_epochs, max_epochs)
 
             logging.info("** RETRAINING TASK: Comenzando Reentrenamiento....")
@@ -39,6 +39,7 @@ if __name__ == "__main__":
             if best_retrain_model:
                 logging.info("** RETRAINING TASK: BEST RETRAIN MODEL FOUND")
 
+            min_size_split += 200
         except Exception as e:
             logging.exception("Error en ADS: " + str(e))
 
